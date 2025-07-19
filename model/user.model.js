@@ -1,7 +1,6 @@
 import mongoose, { Schema, version } from "mongoose";
-const UserSchema = mongoose.Schema({
+const UserSchema = new mongoose.Schema({
     //we have to module use & doctor and both are using same schema 
-
     name: {
         type: String,
         required: true,
@@ -65,10 +64,13 @@ const UserSchema = mongoose.Schema({
             type: String,
             enum: ["male", "female", "other"],
         },
-
+        isVerified: {
+            type: Boolean,
+            default: false
+        },
     },
 },
     { timestamps: true }, { versionKey: false }
-)
+);
 
 export const user = mongoose.model("user",UserSchema);
