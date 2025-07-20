@@ -1,10 +1,92 @@
 import { body, validationResult } from "express-validator";
-import { user } from "../model/user.model.js"
+import { User } from "../model/user.model.js"
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import nodemailer from "nodemailer";
+import jwt from "jsonwebtoken";
 dotenv.config();
+
+export const updateImage = async (request, response, next) => {
+    try {
+        const { doctorId, role } = request.user;
+        let doctor = await User.findOne({ _id: doctorId, role });
+        if (!doctor) {
+            return response.status(404).json({ error: "doctor not found" });
+        }
+        
+        doctor.profile.imageName = request.file?.filename;
+        await doctor.save();
+        return response.status(200).json({ message: "Profile updated added successfully" });
+
+    } catch (error) {
+        console.log(error);
+        return response.status(500).json({ error: "Internal Server Error", error });
+    }
+}
+
+export const createDocProfile = async (request, response, next) => {
+    try {
+        const { doctorId, role } = request.user;
+        let doctor = await User.findOne({ _id: doctorId, role });
+        if (!doctor) {
+            return response.status(404).json({ error: "doctor not found" });
+        }
+        doctor.name = request.body.name ?? doctor.name;
+        doctor.email = request.body.email ?? doctor.email;
+        doctor.roll = request.body.roll ?? doctor.roll;
+        doctor.profile.imageName = request.file?.filename;
+        doctor.profile.address = request.body.address;
+        doctor.profile.phone = request.body.phone;
+        doctor.profile.bio = request.body.bio;
+        doctor.doctorInfo.specialization = request.body.specialization;
+        doctor.doctorInfo.experience = request.body.experience;
+        doctor.doctorInfo.education = request.body.education;
+        doctor.doctorInfo.availability = request.body.availability;
+        doctor.doctorInfo.location = request.body.location;
+        await doctor.save()
+        return response.status(200).json({ message: "Profile Updated successfully" })
+    } catch (error) {
+        console.log(error)
+        return response.status(500).json({ error: "Internal Server Error" ,error});
+    }
+}
+
+
+export const logoutDoctor = async (request, response, next) => {
+    try {
+        response.clearCookie("token");
+        return response.status(200).json({ message: "Logout successfullu" });
+    } catch (error) {
+        console.log(error);
+        return response.status(500).json({ error: "Internel Server Error", error });
+    }
+}
+
+export const signInDoctor = async (request, response, next) => {
+    try {
+        let { email, password, role } = request.body;
+        let user = await User.findOne({ email, role });
+        if (!user || user.role !== "doctor")
+            return response.status(401).json({ error: "Unauthorized User || User not found" });
+
+        if (!user.doctorInfo.isVerified)
+            return response.status(401).json({ error: "Please verify Your Account || Account is not verified" });
+
+        let passwordMatch = await bcrypt.compare(password, user.password);
+        if (!passwordMatch)
+            return response.status(401).json({ error: "Rong Password || Invalid User" });
+
+        passwordMatch && response.cookie("token", generateToken(user.email, user._id, user.role))
+        passwordMatch ? response.status(200).json({ message: "Login SuccessFully" }) : response.status(401).json({ error: "login Failed" })
+
+    } catch (error) {
+        console.log(error);
+        return response.status(500).json({ error: "Internel Server Error", error });
+    }
+}
+
+
 
 export const signUpDoctor = async (request, response, next) => {
     try {
@@ -15,9 +97,9 @@ export const signUpDoctor = async (request, response, next) => {
 
         let { name, email, password, role } = request.body;
         let saltkey = await bcrypt.genSalt(10);
-        password = bcrypt.hashSync(password, saltkey);
-        await user.create({ name, email, password, role });
-        await sendEmail(name , email);
+        password = await bcrypt.hash(password, saltkey);
+        await User.create({ name, email, password, role });
+        await sendEmail(name, email);
         return response.status(201).json({ message: "SignIn Successfull | Please varify your account" });
     }
     catch (err) {
@@ -27,42 +109,43 @@ export const signUpDoctor = async (request, response, next) => {
 
 }
 
-export const varifyAccount =async(request , response, next)=>{
-try{
-let {email} = request.body;
-    console.log("verify : ",email);
-     let result = await user.updateOne({email},{$set :{"doctorInfo.isVerified":true}});
-         console.log("MongoDB Update Result:", result);
-         
-         if (result.matchedCount === 0) 
-      return response.status(404).json({ error: "User not found" });
-        if (result.modifiedCount === 0) 
-      return response.status(200).json({ message: "Already verified" });
-    
+export const varifyAccount = async (request, response, next) => {
+    try {
+        let { email } = request.body;
+        console.log("verify : ", email);
+        let result = await User.updateOne({ email }, { $set: { "doctorInfo.isVerified": true } });
+        console.log("MongoDB Update Result:", result);
 
-     return response.status(201).json({message:"verification completed"})
-}
- catch(err){
-     return response.status(500).json({error: "Internal Server Error"});
-   }
- 
+        if (result.matchedCount === 0)
+            return response.status(404).json({ error: "User not found" });
+        if (result.modifiedCount === 0)
+            return response.status(200).json({ message: "Already verified" });
+
+
+        return response.status(201).json({ message: "verification completed" })
+    }
+    catch (err) {
+        console.log(err)
+        return response.status(500).json({ error: "Internal Server Error" });
+    }
+
 }
 
-const sendEmail = (name, email) =>{
-    return new Promise((resolve,reject) =>{
+const sendEmail = (name, email) => {
+    return new Promise((resolve, reject) => {
         let transporter = nodemailer.createTransport({
-            service:"gmail",
-            auth:{
-                user:process.env.EMAIL,
-                pass:process.env.EMAIL_PASSWORD
+            service: "gmail",
+            auth: {
+                user: process.env.EMAIL,
+                pass: process.env.EMAIL_PASSWORD
             }
         })
 
         let mailOption = {
-            from : process.env.EMAIL,
-            to:email, 
-            subject:"Accounte Verification",
-            html:`<h3>Dear ${name} </h3>
+            from: process.env.EMAIL,
+            to: email,
+            subject: "Accounte Verification",
+            html: `<h3>Dear ${name} </h3>
             <p>Welcome to know your Doctor. Please verify its you if not you dont accept the cookies.</p>
             <form method = "post" action = "http://localhost:3000/doctor/verification">
             <input type = "hidden" name = "email" value =" ${email}" />
@@ -74,13 +157,21 @@ const sendEmail = (name, email) =>{
             </p> 
             `
         };
-        transporter.sendMail(mailOption,function(error,info){
-            if(error){
+        transporter.sendMail(mailOption, function (error, info) {
+            if (error) {
                 reject(error);
             }
-            else{
+            else {
                 resolve();
             }
         });
     });
 }
+
+const generateToken = (email, userid, role) => {
+    let payload = ({ "emailId": email, "doctorId": userid, "role": role });
+    return jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: "1d" });
+}
+
+
+

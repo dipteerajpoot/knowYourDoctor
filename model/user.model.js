@@ -36,7 +36,7 @@ const UserSchema = new mongoose.Schema({
     //only for Doctor---------------------
     doctorInfo: {
         specialization: String,
-        experience: Number,
+        experience: String,
         education: String,
         certificates: [
             {
@@ -48,10 +48,7 @@ const UserSchema = new mongoose.Schema({
         ],
         availability: String,
         location: String,
-        languages: {
-            type: [String],
-            default: [],
-        },
+
         isVerified: {
             type: Boolean,
             default: false
@@ -59,7 +56,7 @@ const UserSchema = new mongoose.Schema({
 
     },
     patientInfo: {  
-        age: Number,
+        age: String,
         gender: {
             type: String,
             enum: ["male", "female", "other"],
@@ -73,4 +70,4 @@ const UserSchema = new mongoose.Schema({
     { timestamps: true }, { versionKey: false }
 );
 
-export const user = mongoose.model("user",UserSchema);
+export const User = mongoose.model("user",UserSchema);
