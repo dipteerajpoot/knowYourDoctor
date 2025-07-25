@@ -2,20 +2,65 @@ import { body, validationResult } from "express-validator";
 import { User } from "../model/user.model.js"
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
-import mongoose from "mongoose";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 dotenv.config();
 
-export const updateImage = async (request, response, next) => {
+export const SearchDoctor = async (request, response) => {
+    try {
+        const { name, location } = request.query;
+        let query = { role: "doctor" };
+        if (name) {
+            query.name = { $regex: name, $options: 'i' };
+        }
+        if (location)
+            query.city = { $regex: location, $options: 'i' };
+
+        const result = await User.find(query);
+        response.status(200).json(result);
+    }
+    catch (error) {
+        console.error("Search Error:", error);
+        response.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+export const fetchProfile = async (request, response) => {
+    try {
+        let { doctorId } = request.body;
+        let doctor = await User.findById({ _id: doctorId });
+        doctor.profile.imageName = "http://localhost:3000/" + doctor.profile.imageName;
+        return response.status(201).json({ doctor });
+
+    } catch (error) {
+        console.log(error);
+        return response.status(500).json({ error: "Internel server error" });
+    }
+} 
+
+export const updateProfile = async (request, response, next) => {
     try {
         const { doctorId, role } = request.user;
         let doctor = await User.findOne({ _id: doctorId, role });
         if (!doctor) {
             return response.status(404).json({ error: "doctor not found" });
         }
-        
-        doctor.profile.imageName = request.file?.filename;
+
+        doctor.name = request.body.name ?? doctor.name;
+        doctor.email = request.body.email ?? doctor.email;
+        doctor.role = request.body.role ?? doctor.role;
+        doctor.profile.imageName = request.file?.filename ?? doctor.profile.imageName;
+        doctor.profile.address = request.body.address ?? doctor.profile.address;
+        doctor.profile.phone = request.body.phone ?? doctor.profile.phone;
+        doctor.profile.bio = request.body.bio ?? doctor.profile.imageName;
+        doctor.doctorInfo.specialization = request.body.specialization ?? doctor.doctorInfo.specialization;
+        doctor.doctorInfo.experience = request.body.experience ?? doctor.doctorInfo.experience;
+        doctor.doctorInfo.education = request.body.education ?? doctor.doctorInfo.education;
+        doctor.doctorInfo.location = request.body.location ?? doctor.doctorInfo.location;
+        const availability = request.body.availability;
+        if(availability && Array.isArray(availability)){
+            doctor.doctorInfo.availability = availability;
+        }
         await doctor.save();
         return response.status(200).json({ message: "Profile updated added successfully" });
 
@@ -30,11 +75,11 @@ export const createDocProfile = async (request, response, next) => {
         const { doctorId, role } = request.user;
         let doctor = await User.findOne({ _id: doctorId, role });
         if (!doctor) {
-            return response.status(404).json({ error: "doctor not found" });
+            return response.status(404).json({ error: " doctor not found || First signIn     the User" });
         }
         doctor.name = request.body.name ?? doctor.name;
         doctor.email = request.body.email ?? doctor.email;
-        doctor.roll = request.body.roll ?? doctor.roll;
+        doctor.role = request.body.role ?? doctor.role;
         doctor.profile.imageName = request.file?.filename;
         doctor.profile.address = request.body.address;
         doctor.profile.phone = request.body.phone;
@@ -42,16 +87,18 @@ export const createDocProfile = async (request, response, next) => {
         doctor.doctorInfo.specialization = request.body.specialization;
         doctor.doctorInfo.experience = request.body.experience;
         doctor.doctorInfo.education = request.body.education;
-        doctor.doctorInfo.availability = request.body.availability;
         doctor.doctorInfo.location = request.body.location;
-        await doctor.save()
+        const availability = request.body.availability;
+        if (availability && Array.isArray(availability)) {
+            doctor.doctorInfo.availability = availability;
+        }
+        await doctor.save();
         return response.status(200).json({ message: "Profile Updated successfully" })
     } catch (error) {
         console.log(error)
-        return response.status(500).json({ error: "Internal Server Error" ,error});
+        return response.status(500).json({ error: "Internal Server Error", error });
     }
 }
-
 
 export const logoutDoctor = async (request, response, next) => {
     try {
@@ -85,7 +132,6 @@ export const signInDoctor = async (request, response, next) => {
         return response.status(500).json({ error: "Internel Server Error", error });
     }
 }
-
 
 
 export const signUpDoctor = async (request, response, next) => {

@@ -1,6 +1,6 @@
 import mongoose, { Schema, version } from "mongoose";
 const UserSchema = new mongoose.Schema({
-    //we have to module use & doctor and both are using same schema 
+    //we have two module user & doctor and both are using same schema 
     name: {
         type: String,
         required: true,
@@ -42,20 +42,24 @@ const UserSchema = new mongoose.Schema({
             {
                 name: String,
                 description: String,
-                issuedBy: String,
+                issuedBy : String,
                 year: Number,
             }
         ],
-        availability: String,
+        availability: [
+            {
+                day: String,
+                from: String,
+                to: String
+            }
+        ],  
         location: String,
-
         isVerified: {
             type: Boolean,
             default: false
         },
-
     },
-    patientInfo: {  
+    patientInfo: {
         age: String,
         gender: {
             type: String,
@@ -66,8 +70,13 @@ const UserSchema = new mongoose.Schema({
             default: false
         },
     },
+    postId: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "post"
+    }]
+
 },
-    { timestamps: true }, { versionKey: false }
+    {timestamps: true }, { versionKey: false }
 );
 
-export const User = mongoose.model("user",UserSchema);
+export const User = mongoose.model("user", UserSchema);

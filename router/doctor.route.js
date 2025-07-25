@@ -1,4 +1,4 @@
-import { signUpDoctor , varifyAccount ,signInDoctor,logoutDoctor , createDocProfile,updateImage} from "../controller/docter.controller.js";
+import { signUpDoctor , varifyAccount ,signInDoctor,logoutDoctor , createDocProfile,updateProfile,fetchProfile, SearchDoctor} from "../controller/docter.controller.js";
 import {auth} from "../middleware/auth.js"
 import {body }from "express-validator";
 import express from "express";
@@ -20,5 +20,7 @@ router.post("/verification" , varifyAccount);
 router.post("/signInDoctor",signInDoctor);
 router.post("/logoutDoctor",auth,logoutDoctor);
 router.patch("/createProfile",auth,upload.single("imageName"),createDocProfile);
-router.patch("/updateImage",auth,upload.single("imageName"),updateImage);
+router.patch("/updateProfile",auth,updateProfile);
+router.get("/fatchProfile",auth,fetchProfile);
+router.get("/search",auth , SearchDoctor);
 export default router;

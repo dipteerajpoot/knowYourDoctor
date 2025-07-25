@@ -1,4 +1,3 @@
-    
 import cors from "cors";
 import mongoose from "mongoose";
     import bodyparser from "body-parser";
@@ -7,6 +6,8 @@ import mongoose from "mongoose";
     import express from "express";
     import doctorRoute from "./router/doctor.route.js";
     import patientRoute from "./router/patient.router.js";
+    import postRoute from "./router/post.router.js"
+    import appintmentRouter from "./router/appointment.router.js";
     import cookieParser from "cookie-parser";
     const app = express();
 
@@ -18,6 +19,8 @@ import mongoose from "mongoose";
         app.use(express.static("public"));
         app.use("/doctor",doctorRoute)
         app.use("/patient",patientRoute);
+        app.use("/post",postRoute);
+        app.use("/appoint",appintmentRouter);
         app.use(cors({
             origin:"*",
             methods:["GET,POST"]

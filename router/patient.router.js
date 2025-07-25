@@ -1,10 +1,14 @@
 import express from "express";
 import {body} from "express-validator";
-import {signUpPatient , verifyAccount,signInPatient,logOutPatient,createPatientProfile,updateImage} from "../controller/patient.controller.js";
+import { SearchDoctor } from "../controller/docter.controller.js";
+import {signUpPatient , verifyAccount,signInPatient,logOutPatient,createPatientProfile,updateProfile,fetchProfile } from "../controller/patient.controller.js";
 import {auth} from "../middleware/auth.js";
 import multer from "multer";
 const upload = multer({dest:"public/patientProfile"});
 const router = express.Router();
+
+
+
 
 router.post("/signUpPatient",
     body("name","name is required").notEmpty(),
@@ -20,7 +24,9 @@ router.post("/verification", verifyAccount);
 router.post("/signInPatient",signInPatient);
 router.post("/logoutPatient",auth,logOutPatient)
 router.patch("/createProfile",auth,upload.single("imageName"),createPatientProfile);
-router.patch("/updateImage",auth,upload.single("imageName"),updateImage)
+router.patch("/updateImage",auth,upload.single("imageName"),updateProfile)
+router.get("/fethcProfile",auth,fetchProfile);
+router.get("/search",auth,SearchDoctor);
 
 export default router;  
 
