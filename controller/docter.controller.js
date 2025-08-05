@@ -36,7 +36,7 @@ export const fetchProfile = async (request, response) => {
         console.log(error);
         return response.status(500).json({ error: "Internel server error" });
     }
-} 
+}; 
 
 export const updateProfile = async (request, response, next) => {
     try {
@@ -68,7 +68,7 @@ export const updateProfile = async (request, response, next) => {
         console.log(error);
         return response.status(500).json({ error: "Internal Server Error", error });
     }
-}
+};
 
 export const createDocProfile = async (request, response, next) => {
     try {
@@ -103,7 +103,7 @@ export const createDocProfile = async (request, response, next) => {
 export const logoutDoctor = async (request, response, next) => {
     try {
         response.clearCookie("token");
-        return response.status(200).json({ message: "Logout successfullu" });
+        return response.status(200).json({ message: "SignOut successfullu" });
     } catch (error) {
         console.log(error);
         return response.status(500).json({ error: "Internel Server Error", error });
@@ -123,9 +123,9 @@ export const signInDoctor = async (request, response, next) => {
         let passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch)
             return response.status(401).json({ error: "Rong Password || Invalid User" });
-
+                
         passwordMatch && response.cookie("token", generateToken(user.email, user._id, user.role))
-        passwordMatch ? response.status(200).json({ message: "Login SuccessFully" }) : response.status(401).json({ error: "login Failed" })
+        passwordMatch ? response.status(200).json({ message: "signIn SuccessFully" }) : response.status(401).json({ error: "login Failed" })
 
     } catch (error) {
         console.log(error);
@@ -146,7 +146,7 @@ export const signUpDoctor = async (request, response, next) => {
         password = await bcrypt.hash(password, saltkey);
         await User.create({ name, email, password, role });
         await sendEmail(name, email);
-        return response.status(201).json({ message: "SignIn Successfull | Please varify your account" });
+        return response.status(201).json({ message:"SignIn Successfull | Please varify your account" });
     }
     catch (err) {
         console.log(err);

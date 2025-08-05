@@ -98,7 +98,12 @@
             if (!isMatch)
                 return response.status(401).json({ error: "Wrong Password || Unauthorized User" });
             const token = generateToken(patient.email, patient._id, patient.role);
-            isMatch && response.cookie("token", token);
+            isMatch && response.cookie("token", token,{
+                    httpnly:true,
+                    secure:false,
+                    sameSite:"lax"
+            });
+            
             isMatch ? response.status(200).json({ message: "Login successful", token }) : response.status(401).json({ error: "Unauthorized User" })
 
         } catch (error) {
@@ -114,7 +119,7 @@
             //  Validate patient
             const errors = validationResult(request);
             if (!errors.isEmpty())
-                return response.status(400).json({ error: "Bad request | Invalid Data", errorMessages: errors.array() });
+                return response.status(400).json({ error: "Bad request |Data is Invalid", errorMessages: errors.array() });
 
             let { name, email, password, role } = request.body;
             let saltkey = await bcrypt.genSalt(10);
@@ -130,7 +135,7 @@
 
     }
 
-    export const verifyAccount = async (request, response, next) => {
+    export const    verifyAccount = async (request, response, next) => {
         try {
             let { email } = request.body;
             // console.log("verify : ", email);
