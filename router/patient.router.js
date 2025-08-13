@@ -22,7 +22,7 @@ router.post("/signUpPatient",
 
 router.post("/verification", verifyAccount);
 router.post("/signInPatient",signInPatient);
-router.post("/logoutPatient",auth,logOutPatient)
+router.post("/signOut",auth,logOutPatient)
 router.patch("/createProfile",auth,upload.single("imageName"),createPatientProfile);
 router.patch("/updateImage",auth,upload.single("imageName"),updateProfile)
 router.get("/fethcProfile",auth,fetchProfile);

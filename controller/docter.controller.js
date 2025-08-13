@@ -4,7 +4,22 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
-dotenv.config();
+
+export const doctorList = async (request, response, next) => {
+    try {
+        let doctors = await User.find({ role: "doctor" });
+        doctors.forEach(doctor => {
+            if (doctor.profile && doctor.profile.imageName) {
+                doctor.profile.imageName = "http://localhost:3000/" + doctor.profile.imageName;
+            }
+        })
+        return response.status(200).json({ message: "doctorList", doctors })
+
+    } catch (error) {
+        console.log(error);
+        return response.status(500).json("Internel server error");
+    }
+}
 
 export const SearchDoctor = async (request, response) => {
     try {
@@ -36,7 +51,7 @@ export const fetchProfile = async (request, response) => {
         console.log(error);
         return response.status(500).json({ error: "Internel server error" });
     }
-}; 
+};
 
 export const updateProfile = async (request, response, next) => {
     try {
@@ -58,7 +73,7 @@ export const updateProfile = async (request, response, next) => {
         doctor.doctorInfo.education = request.body.education ?? doctor.doctorInfo.education;
         doctor.doctorInfo.location = request.body.location ?? doctor.doctorInfo.location;
         const availability = request.body.availability;
-        if(availability && Array.isArray(availability)){
+        if (availability && Array.isArray(availability)) {
             doctor.doctorInfo.availability = availability;
         }
         await doctor.save();
@@ -102,8 +117,10 @@ export const createDocProfile = async (request, response, next) => {
 
 export const logoutDoctor = async (request, response, next) => {
     try {
+        console.log("clearcookie exicueted");
+
         response.clearCookie("token");
-        return response.status(200).json({ message: "SignOut successfullu" });
+        return response.status(200).json({ message: "SignOut successfull" });
     } catch (error) {
         console.log(error);
         return response.status(500).json({ error: "Internel Server Error", error });
@@ -123,9 +140,13 @@ export const signInDoctor = async (request, response, next) => {
         let passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch)
             return response.status(401).json({ error: "Rong Password || Invalid User" });
-                
-        passwordMatch && response.cookie("token", generateToken(user.email, user._id, user.role))
-        passwordMatch ? response.status(200).json({ message: "signIn SuccessFully" }) : response.status(401).json({ error: "login Failed" })
+        user.password = undefined;
+        console.log(user);
+        passwordMatch ? response.status(200).json({ message: "signIn SuccessFully", user, token: generateToken(user.email, user._id, user.role) }, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax"
+        }) : response.status(401).json({ error: "login Failed" })
 
     } catch (error) {
         console.log(error);
@@ -146,7 +167,7 @@ export const signUpDoctor = async (request, response, next) => {
         password = await bcrypt.hash(password, saltkey);
         await User.create({ name, email, password, role });
         await sendEmail(name, email);
-        return response.status(201).json({ message:"SignIn Successfull | Please varify your account" });
+        return response.status(201).json({ message: "SignIn Successfull | Please varify your account" });
     }
     catch (err) {
         console.log(err);

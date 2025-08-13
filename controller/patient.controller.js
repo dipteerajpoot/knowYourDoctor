@@ -103,8 +103,8 @@
                     secure:false,
                     sameSite:"lax"
             });
-            
-            isMatch ? response.status(200).json({ message: "Login successful", token }) : response.status(401).json({ error: "Unauthorized User" })
+            patient.password = undefined;
+            isMatch ? response.status(200).json({ message: "Login successful",patient,token }) : response.status(401).json({ error: "Unauthorized User" })
 
         } catch (error) {
             console.log(error);
