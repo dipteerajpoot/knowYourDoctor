@@ -10,7 +10,7 @@ const router = express.Router();
 
 
 
-router.post("/signUpPatient",
+router.post("/signUp",
     body("name","name is required").notEmpty(),
         body("name", "Only Alphabets are allowed").isAlpha(),
         body("email","email is required ").notEmpty(),
@@ -21,8 +21,8 @@ router.post("/signUpPatient",
     );
 
 router.post("/verification", verifyAccount);
-router.post("/signInPatient",signInPatient);
-router.post("/signOut",auth,logOutPatient)
+router.post("/signIn",signInPatient);
+router.post("/signOut",auth,logOutPatient)  
 router.patch("/createProfile",auth,upload.single("imageName"),createPatientProfile);
 router.patch("/updateImage",auth,upload.single("imageName"),updateProfile)
 router.get("/fethcProfile",auth,fetchProfile);

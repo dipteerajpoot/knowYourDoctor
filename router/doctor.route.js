@@ -6,7 +6,7 @@ import multer from "multer";
 const upload = multer({dest:"public/doctorProfile"})
 const router = express.Router();
 
-router.post("/signUpDoctor",body("name","name is required").notEmpty(),
+router.post("/signUp",body("name","name is required").notEmpty(),
     body("name", "Only Alphabets are allowed").isAlpha(),
     body("email","email is required ").notEmpty(),
     body("email", "invalid email id").isEmail(),
@@ -17,7 +17,7 @@ router.post("/signUpDoctor",body("name","name is required").notEmpty(),
 )
 
 router.post("/verification" , varifyAccount);
-router.post("/signInDoctor",signInDoctor);
+router.post("/signIn",signInDoctor);
 router.post("/signOut",auth,logoutDoctor);
 router.patch("/createProfile",auth,upload.single("imageName"),createDocProfile);
 router.patch("/updateProfile",auth,updateProfile);

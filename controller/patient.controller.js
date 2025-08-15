@@ -6,7 +6,6 @@
     import jwt from "jsonwebtoken";
     dotenv.config();
 
-
     export const fetchProfile = async (request, response) => {
         try {
             let { patientId } = request.user;
@@ -38,6 +37,7 @@
             patient.patientInfo.age = request.body.age ?? patient.patientInfo.age;
             patient.patientInfo.gender = request.body.gender ?? patient.patientInfo.gender;
             await patient.save();
+            
             return response.status(200).json({ message: "Profile updated added successfully" });
 
         } catch (error) {
@@ -93,10 +93,10 @@
             if (!patient.patientInfo.isVerified)
                 return response.status(401).json({ error: "Please Verify your account || Account is not verified" });
 
-            let isMatch = await bcrypt.compare(password, patient.password);
-
+            let isMatch = await bcrypt.compare(password, patient.password); 
             if (!isMatch)
                 return response.status(401).json({ error: "Wrong Password || Unauthorized User" });
+
             const token = generateToken(patient.email, patient._id, patient.role);
             isMatch && response.cookie("token", token,{
                     httpnly:true,
@@ -104,7 +104,8 @@
                     sameSite:"lax"
             });
             patient.password = undefined;
-            isMatch ? response.status(200).json({ message: "Login successful",patient,token }) : response.status(401).json({ error: "Unauthorized User" })
+
+            isMatch ? response.status(200).json({ message: "Login successful",patient }) : response.status(401).json({ error: "Unauthorized User" })
 
         } catch (error) {
             console.log(error);
@@ -117,6 +118,7 @@
     export const signUpPatient = async (request, response, next) => {
         try {
             //  Validate patient
+            console.log("signUpexecuted");
             const errors = validationResult(request);
             if (!errors.isEmpty())
                 return response.status(400).json({ error: "Bad request |Data is Invalid", errorMessages: errors.array() });
@@ -135,7 +137,7 @@
 
     }
 
-    export const    verifyAccount = async (request, response, next) => {
+    export const  verifyAccount = async (request, response, next) => {
         try {
             let { email } = request.body;
             // console.log("verify : ", email);

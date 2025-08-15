@@ -140,13 +140,15 @@ export const signInDoctor = async (request, response, next) => {
         let passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch)
             return response.status(401).json({ error: "Rong Password || Invalid User" });
-        user.password = undefined;
-        console.log(user);
-        passwordMatch ? response.status(200).json({ message: "signIn SuccessFully", user, token: generateToken(user.email, user._id, user.role) }, {
+        console.log(user);      
+        let token = generateToken(user.email, user._id, user.role);
+        response.cookie("token",token,{
             httpOnly: true,
             secure: false,
             sameSite: "lax"
-        }) : response.status(401).json({ error: "login Failed" })
+        });
+        user.password = undefined;
+        passwordMatch ? response.status(200).json({ message: "signIn SuccessFully", user}, ) : response.status(401).json({ error: "login Failed" })
 
     } catch (error) {
         console.log(error);
@@ -169,9 +171,9 @@ export const signUpDoctor = async (request, response, next) => {
         await sendEmail(name, email);
         return response.status(201).json({ message: "SignIn Successfull | Please varify your account" });
     }
-    catch (err) {
-        console.log(err);
-        return response.status(500).json({ error: "Internel sever Error", err });
+    catch (error) {
+        console.log(error);
+        return response.status(500).json({ error: "Internel sever Error", error });
     }
 
 }
