@@ -8,6 +8,7 @@ const router = express.Router();
 
 router.post("/signUp",body("name","name is required").notEmpty(),
     body("name", "Only Alphabets are allowed").isAlpha(),
+    body("name","Name can only contain alphabets, space, underscore and hyphen").matches(/^[A-Za-z _-]/),
     body("email","email is required ").notEmpty(),
     body("email", "invalid email id").isEmail(),
     body("password", "password is required").notEmpty(),

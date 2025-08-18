@@ -11,13 +11,12 @@ router.post("/create",
     body("Email","Valid Email").isEmail(),
     body("apmtDay","Appointment Day required").notEmpty(),
     body("apmtTime","Appointment Time required").notEmpty(),
-    body("apmtDate","Date is required").notEmpty(),
+    body("apmtDate","Date is required").notEmpty(), 
     auth,createAppointment);
 
-
 router.patch("/update/:id",auth,updateAppointment); //apId
-router.patch("/cancel/:id",auth,cancelAppointment);//apId
-router.get("/viewAll",auth,viewAppointments);
+router.patch("/cancel/:id",auth,cancelAppointment);//apId   
+router.get("/viewAll",auth,viewAppointments);//apId
 router.patch("/confirm/:id",auth,confirmAppointment); //apId
 router.patch("/complete/:id",auth,completeAppointment); //apId
 router.delete("/delete/:id",auth,deleteAppointment); //apId

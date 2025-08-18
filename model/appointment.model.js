@@ -43,8 +43,10 @@ const appointmentSchema = new  mongoose.Schema({
           apmtDay:{
             type:String,
             required:true
+          },
+          mobile:{
+            type:String,
           }
-
 })
 
 export const Appointment = mongoose.model("appointment",appointmentSchema);

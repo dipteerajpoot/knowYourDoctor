@@ -2,9 +2,10 @@ import mongoose, { Schema, version } from "mongoose";
 const UserSchema = new mongoose.Schema({
     //we have two module user & doctor and both are using same schema 
     name: {
-        type: String,
+        type: String, 
         required: true,
         trim: true,
+        match:/^[A-Za-z _-]+$/
     },
     email: {
         type: String,
@@ -30,7 +31,6 @@ const UserSchema = new mongoose.Schema({
             type: String,
             maxlength: 1000,
         },
-
     },
 
     //only for Doctor---------------------

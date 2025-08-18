@@ -1,6 +1,5 @@
 import { body, validationResult } from "express-validator";
 import { User } from "../model/user.model.js"
-import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
@@ -23,20 +22,29 @@ export const doctorList = async (request, response, next) => {
 
 export const SearchDoctor = async (request, response) => {
     try {
-        const { name, location } = request.query;
+        const { name, location, disease, city } = request.query;
         let query = { role: "doctor" };
         if (name) {
             query.name = { $regex: name, $options: 'i' };
         }
         if (location)
             query.city = { $regex: location, $options: 'i' };
-
+        if (disease) {
+            query.disease = { $regex: disease, $options: 'i' };
+        }
+        if (city) {
+            query.city = { $regex: city, $options: 'i' };
+        }
         const result = await User.find(query);
-        response.status(200).json(result);
+
+        if (!result)
+            return response.status(200).json("No Any Doctor found")
+
+       return response.status(200).json(result);
     }
     catch (error) {
         console.error("Search Error:", error);
-        response.status(500).json({ message: "Internal Server Error" });
+        return response.status(500).json({ message: "Internal Server Error" });
     }
 };
 
@@ -46,7 +54,6 @@ export const fetchProfile = async (request, response) => {
         let doctor = await User.findById({ _id: doctorId });
         doctor.profile.imageName = "http://localhost:3000/" + doctor.profile.imageName;
         return response.status(201).json({ doctor });
-
     } catch (error) {
         console.log(error);
         return response.status(500).json({ error: "Internel server error" });
@@ -140,15 +147,15 @@ export const signInDoctor = async (request, response, next) => {
         let passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch)
             return response.status(401).json({ error: "Rong Password || Invalid User" });
-        console.log(user);      
+        console.log(user);
         let token = generateToken(user.email, user._id, user.role);
-        response.cookie("token",token,{
+        response.cookie("token", token, {
             httpOnly: true,
             secure: false,
             sameSite: "lax"
         });
         user.password = undefined;
-        passwordMatch ? response.status(200).json({ message: "signIn SuccessFully", user}, ) : response.status(401).json({ error: "login Failed" })
+        passwordMatch ? response.status(200).json({ message: "signIn SuccessFully", user },) : response.status(401).json({ error: "login Failed" })
 
     } catch (error) {
         console.log(error);
@@ -156,14 +163,15 @@ export const signInDoctor = async (request, response, next) => {
     }
 }
 
-
 export const signUpDoctor = async (request, response, next) => {
     try {
         //  Validate doctor
         const errors = validationResult(request);
-        if (!errors.isEmpty())
-            return response.status(400).json({ error: "Bad request | Invalid Data", errorMessages: errors.array() });
-
+        if (!errors.isEmpty()){
+            console.log(errors.array());
+            return response.status(400).json({ error: "Bad request | Invalid Data", errorMessages: errors.array()});
+        
+        }
         let { name, email, password, role } = request.body;
         let saltkey = await bcrypt.genSalt(10);
         password = await bcrypt.hash(password, saltkey);
@@ -241,6 +249,3 @@ const generateToken = (email, userid, role) => {
     let payload = ({ "emailId": email, "doctorId": userid, "role": role });
     return jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: "1d" });
 }
-
-
-

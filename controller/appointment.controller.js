@@ -3,20 +3,19 @@ import { User } from "../model/user.model.js";
 // PATIENT: Create Appointment
 export const createAppointment = async (req, res) => {
   try {
-    const { name, email, doctorId, apmtDate, apmtTime, apmtDay, meetingReason } = req.body;
+    const { name, email, mobile, doctorId, apmtDate, apmtTime, apmtDay, meetingReason} = req.body;
+    console.log("Appointment  controller "+name,email,meetingReason,apmtDate,doctorId)
     const { patientId } = req.user;
     const doctor = await User.findById(doctorId);
     if (!doctor || doctor.role !== "doctor") {
       return res.status(404).json({ error: "Doctor not found" });
     }
-
     const isAvailable = doctor.doctorInfo.availability.some(slot => {
       const slotday = slot.day.toLowerCase();
       const slotFrom = changeToMinut(slot.from);
       const slotTo = changeToMinut(slot.to);
       const reqstedDay = apmtDay.toLowerCase();
       const requestedTime = changeToMinut(apmtTime);
-
       return (slotday === reqstedDay && requestedTime >= slotFrom && requestedTime < slotTo);
     });
 
@@ -32,6 +31,7 @@ export const createAppointment = async (req, res) => {
     const appointment = new Appointment({
       name,
       email,
+      mobile,
       doctorId,
       patientId,
       apmtDate,
@@ -55,7 +55,6 @@ const changeToMinut = (time) => {
 
 
 /// PATIENT: Update Appointment (Only if pending)
-
 export const updateAppointment = async (req, res) => {
   try {
     const { id } = req.params;
@@ -103,7 +102,6 @@ export const updateAppointment = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 // PATIENT & Doctor : Cancel Appointment
 export const cancelAppointment = async (req, res) => {
