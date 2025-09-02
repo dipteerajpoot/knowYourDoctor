@@ -6,18 +6,18 @@
     import jwt from "jsonwebtoken";
     dotenv.config();
 
-    export const fetchProfile = async (request, response) => {
-        try {
-            let { patientId } = request.user;
-            let patient = await User.findById({ _id: patientId });
-            patient.profile.imageName = "http://localhost:3000/" + patient.profile.imageName;
-            return response.status(201).json({ patient });
+        export const fetchProfile = async (request, response) => {
+            try {
+                let { patientId } = request.user;
+                let patient = await User.findById({ _id: patientId });
+                patient.profile.imageName = `http://localhost:3000/patientProfile/${patient.profile.imageName}`;
+                return response.status(201).json({ patient });
 
-        } catch (error) {
-            console.log(error);
-            return response.status(500).json({ error: "Internel server error" });
+            } catch (error) {
+                console.log(error);
+                return response.status(500).json({ error: "Internel server error" });
+            }
         }
-    }
 
 
     export const updateProfile = async (request, response, next) => {
@@ -118,7 +118,7 @@
     export const signUpPatient = async (request, response, next) => {
         try {
             //  Validate patient
-            console.log("signUpexecuted");
+            // console.log("signUpexecuted");
             const errors = validationResult(request);
             if (!errors.isEmpty())
                 return response.status(400).json({ error: "Bad request |Data is Invalid", errorMessages: errors.array() });

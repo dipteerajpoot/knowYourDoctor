@@ -1,10 +1,11 @@
-import { doctorList,signUpDoctor , varifyAccount ,signInDoctor,logoutDoctor , createDocProfile,updateProfile,fetchProfile, SearchDoctor} from "../controller/docter.controller.js";
+import { getProfile,doctorList,signUpDoctor , varifyAccount ,signInDoctor,logoutDoctor , createDocProfile,updateProfile,fetchProfile, SearchDoctor ,addCertificate,updateCertificate,deleteCertificate} from "../controller/docter.controller.js";
 import {auth} from "../middleware/auth.js"
-import {body }from "express-validator";
+import { body }from "express-validator";
 import express from "express";
 import multer from "multer";
 const upload = multer({dest:"public/doctorProfile"})
-const router = express.Router();
+const certUpload = multer({dest:"public/certi"});
+const router = express.Router();                                                                                                                                                                                                                  
 
 router.post("/signUp",body("name","name is required").notEmpty(),
     body("name", "Only Alphabets are allowed").isAlpha(),
@@ -21,9 +22,14 @@ router.post("/verification" , varifyAccount);
 router.post("/signIn",signInDoctor);
 router.post("/signOut",auth,logoutDoctor);
 router.patch("/createProfile",auth,upload.single("imageName"),createDocProfile);
-router.patch("/updateProfile",auth,updateProfile);
-router.get("/fatchProfile",auth,fetchProfile);
+router.patch("/updateProfile",auth,upload.single("imageName"),updateProfile);
+router.get("/fetchProfile/:id",auth,fetchProfile);
 router.get("/search",auth , SearchDoctor);
-router.get("/doctorList",doctorList);
+router.get("/doctorList",doctorList);   
+router.get("/profile",auth,getProfile);
+router.post("/certificate", auth,certUpload.single('certificate'), addCertificate);
+router.patch("/certificate/:id", auth, updateCertificate);
+router.delete("/certificate/:id", auth, deleteCertificate);
+
 
 export default router;

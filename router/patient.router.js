@@ -26,7 +26,7 @@ router.post("/signOut",auth,logOutPatient)
 router.patch("/createProfile",auth,upload.single("imageName"),createPatientProfile);
 router.patch("/updateImage",auth,upload.single("imageName"),updateProfile)
 router.get("/fethcProfile",auth,fetchProfile);
-router.get("/search",auth,SearchDoctor);
+router.get("/search",auth,SearchDoctor);    
 
 export default router;  
 

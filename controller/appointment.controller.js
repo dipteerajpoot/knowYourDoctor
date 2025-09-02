@@ -4,7 +4,7 @@ import { User } from "../model/user.model.js";
 export const createAppointment = async (req, res) => {
   try {
     const { name, email, mobile, doctorId, apmtDate, apmtTime, apmtDay, meetingReason} = req.body;
-    console.log("Appointment  controller "+name,email,meetingReason,apmtDate,doctorId)
+    // console.log("Appointment  controller "+name,email,meetingReason,apmtDate,apmtTime,doctorId)
     const { patientId } = req.user;
     const doctor = await User.findById(doctorId);
     if (!doctor || doctor.role !== "doctor") {
@@ -20,7 +20,8 @@ export const createAppointment = async (req, res) => {
     });
 
     if (!isAvailable) {
-      return res.status(400).json({ error: "Doctor is not available at the selected time" });
+      return res.status(400).json({ error: "Doctor is not available at the selected time"});
+      
     }
 
     const BookedAllready = await Appointment.findOne({ doctorId, apmtTime, apmtDay, apmtDate })
@@ -29,15 +30,7 @@ export const createAppointment = async (req, res) => {
       return res.status(400).json({ error: "Already booked in this time slot" });
 
     const appointment = new Appointment({
-      name,
-      email,
-      mobile,
-      doctorId,
-      patientId,
-      apmtDate,
-      apmtTime,
-      apmtDate,
-      meetingReason
+      name, email,mobile,doctorId,patientId,apmtDate,apmtTime,apmtDay, meetingReason
     });
 
     await appointment.save();
@@ -53,6 +46,18 @@ const changeToMinut = (time) => {
   return hr * 60 + min;
 };
 
+// const changeToMinut = (time) => {
+//   let [hr, minPart] = time.split(":");
+//   let min = parseInt(minPart); 
+//   let isPM = time.toLowerCase().includes("pm");
+//   let isAM = time.toLowerCase().includes("am");
+
+//   hr = parseInt(hr);
+//   if (isPM && hr < 12) hr += 12;
+//   if (isAM && hr === 12) hr = 0;
+
+//   return hr * 60 + min;
+// };
 
 /// PATIENT: Update Appointment (Only if pending)
 export const updateAppointment = async (req, res) => {
@@ -76,9 +81,7 @@ export const updateAppointment = async (req, res) => {
     }
 
     const isAvailable = doctor.doctorInfo.availability.some(slot => {
-      const slotday = slot.
-
-        return(slot.day = apmtDay && apmtTime >= slot.from >= apmtTime && slot.to <= apmtDate);
+      const slotday = slot.return(slot.day = apmtDay.toLowerCase() && changeToMinut(apmtTime) >= slot.from >= changeToMinut(apmtTime) && slot.to <= apmtDate);
     });
 
     if (!isAvailable) {

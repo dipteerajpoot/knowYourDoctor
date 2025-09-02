@@ -8,7 +8,7 @@ import doctorRoute from "./router/doctor.route.js";
 import patientRoute from "./router/patient.router.js";
 import postRoute from "./router/post.router.js"
 import appintmentRouter from "./router/appointment.router.js";
-import cookieParser from "cookie-parser";
+import cookieParser from "cookie-parser";   
 
 const app = express();
 
