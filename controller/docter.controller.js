@@ -201,6 +201,7 @@ export const getProfile = async (request, response) => {
 
 export const updateProfile = async (request, response, next) => {
     try {
+        console.log("update Profile executed");
         const { doctorId, role } = request.user;
         let doctor = await User.findOne({ _id: doctorId, role });
         if (!doctor) {
@@ -232,7 +233,7 @@ export const updateProfile = async (request, response, next) => {
             }));
         }
         await doctor.save();
-        return response.status(200).json({ message: "Profile updated added successfully" });
+        return response.status(200).json({ message: "Profile updated successfully",doctor});
 
     } catch (error) {
         console.log(error);
