@@ -2,69 +2,99 @@ import { request, response } from "express"
 import { Post } from "../model/post.model.js"
 import mongoose from "mongoose";
 //creating the post only for doctor
-export const createPost = async (request, response, next) => {
+export const createPost = async (req, res, next) => {
     try {
-        const { doctorId, role } = request.user;
+        const { doctorId, role } = req.user;
+
         if (role !== "doctor") {
-            return response.status(403).json({ error: "Restriction : Only doctors are allow for post" });
+            return res.status(403).json({ error: "Only doctors are allowed to post" });
         }
+
+        const postImage = req.files?.postImage?.[0]?.filename || null;
+        const postVideo = req.files?.postVideo?.[0]?.filename || null;
+
         const newPost = new Post({
-            title: request.body.title,
-            content: request.body.content,
-            postImage: request.file?.filename,
-            doctorId: doctorId
-        })
+            title: req.body.title,
+            content: req.body.content,
+            postImage,
+            postVideo,
+            doctorId
+        });
+
         await newPost.save();
-        return response.status(201).json({ message: "post added " })
+
+        return res.status(201).json({ message: "Post added successfully", post: newPost });
 
     } catch (error) {
-        console.log("PostErrorn", error);
-        return response.status(500).json("Internel server Error")
+        console.log("PostError:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
     }
+};
 
-}
 
-export const fetchAllPost = async (request, response, next) => {
+export const fetchAllPost = async (req, res, next) => {
     try {
-        let post = await Post.find().populate("doctorId");
-        post.postImage = "http://localhost:3000/" + post.postImage;
-        return response.status(200).json({ message: "Posts :", post })
+        let posts = await Post.find().populate("doctorId");
+
+        const updatedPosts = posts.map(post => ({
+            ...post._doc, 
+            postImage: post.postImage ? `http://localhost:3000/${post.postImage}` : null,
+            postVideo: post.postVideo ? `http://localhost:3000/${post.postVideo}` : null
+        }));
+
+        return res.status(200).json({ message: "Posts fetched successfully", posts: updatedPosts });
 
     } catch (error) {
         console.log("PostError", error);
-        return response.status(500).json("Internel server Error")
+        return res.status(500).json({ error: "Internal Server Error" });
     }
-}
+};
 
-//getiny all post by doctor Id
 
-export const getPostByDoctorId = async (request, response, next) => {
-    try {
-        let { id } = request.params;
-        console.log(id);
-        let posts = await Post.find({ doctorId: id });
-        if (!posts || posts.length === 0)
-            return response.status(404).json({ message: "No Posts available" });
-        return response.status(200).json({ list: "posts", posts });
-    } catch (error) {
-        console.log("PostError", error);
-        return response.status(500).json("Internel server Error")
-    }
-}
+
+// export const getPostByDoctorId = async (request, response, next) => {
+//     try {
+//         let { doctorId } = request.user;
+//         console.log(doctorId);
+//         let posts = await Post.find({ doctorId});
+//         if (!posts || posts.length === 0)
+//             return response.status(404).json({ message: "No Posts available" });
+//         posts=poasts.map(post =>{
+//             return{
+//    posts.postImage = "http://localhost:3000"+Post.postImage;
+//         posts.postVidio = "http://localhost:3000"+Post.postVideo;
+                
+//             }
+//         })
+     
+//         return response.status(200).json({ list: "posts", posts });
+//     } catch (error) {
+//         console.log("PostError", error);
+//         return response.status(500).json("Internel server Error")
+//     }
+// }
+
 
 //getting posts for currunt doctor
-export const getPostforCurruntDoctor = async (request, response, next) => {
+export const getPostforCurruntDoctor = async (req, res, next) => {
     try {
-        let { doctorId } = request.user;
-        let posts = await Post.find({ doctorId });
-        if (!posts || posts.length === 0)
-            return response.status(404).json({ message: "No Posts available" });
-        return response.status(200).json({ list: "posts", posts });
+        const { doctorId } = req.user;
+        let posts = await Post.find({ doctorId }).populate("doctorId");
+        if (!posts || posts.length === 0) {
+            return res.status(404).json({ message: "No Posts available" });
+        }
+        const updatedPosts = posts.map(post => ({
+            ...post._doc, 
+            postImage: post.postImage ? `http://localhost:3000/posts/${post.postImage}` : null,
+            postVideo: post.postVideo ? `http://localhost:3000/posts/${post.postVideo}` : null,
+        }));
+        return res.status(200).json({ message: "Posts fetched successfully", posts: updatedPosts });
     } catch (error) {
         console.log("PostError", error);
-        return response.status(500).json("Internel server Error")
+        return res.status(500).json({ error: "Internal Server Error" });
     }
-}
+};
+
 
 //update post
 // export const updatePost = async(request,response,next) =>{
@@ -88,44 +118,48 @@ export const getPostforCurruntDoctor = async (request, response, next) => {
 export const updatePost = async (req, res) => {
     try {
         const { id } = req.params;
-        const updatedPost = await Post.findByIdAndUpdate(
-            id,
-            {
-                $set: {
-                    title: req.body.title,
-                    content: req.body.content,
-                    postImage: req.body.postImage,
-                },
-            },
-            { new: true, runValidators: true }
-        );
-
-        if (!updatedPost) {
+        const post = await Post.findById(id);
+        if (!post) {
             return res.status(404).json({ message: "Post not found" });
         }
+        post.title = req.body.title ?? post.title;
+        post.content = req.body.content ?? post.content;
+        post.postImage = req.files?.postImage?.[0]?.filename || post.postImage;
+        post.postVideo = req.files?.postVideo?.[0]?.filename || post.postVideo;
 
-        return res.status(200).json({ message: "Post updated", updatedPost });
+        await post.save();
+
+        res.status(200).json({
+            message: "Post updated",
+            post: {
+                ...post._doc,
+                postImage: post.postImage ? `http://localhost:3000/${post.postImage}` : null,
+                postVideo: post.postVideo ? `http://localhost:3000/${post.postVideo}` : null,
+            }
+        });
+
     } catch (error) {
         console.error("PostError", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+
+export const deletePost = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: "Invalid Post ID" });
+        }
+        const result = await Post.findByIdAndDelete(id);
+        if (!result) {
+            return res.status(404).json({ message: "Post not found or already deleted" });
+        }
+        return res.status(200).json({ message: "Post deleted successfully" });
+    } catch (error) {
+        console.log("PostError", error);
         return res.status(500).json({ error: "Internal Server Error" });
     }
 };
 
-export const deletePost = async (request, response, next) => {
-    try {
-        const { id } = request.params;
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return response.status(400).json({ message: "Invalid Post ID" });
-        }
-        let result = await Post.findByIdAndDelete(id);
-        // let result = await Post.deleteOne({ _id: id });
-        if (result.deletedCount === 0)
-            return response.status(401).json({ message: "post not deleted" });
-
-        return response.status(200).json({ message: "post deleted" });
-    } catch (error) {
-        console.log("PostError", error);
-        return response.status(500).json("Internel server Error")
-    }
-}
 

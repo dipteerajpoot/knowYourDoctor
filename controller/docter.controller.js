@@ -182,7 +182,7 @@ export const getProfile = async (request, response) => {
     try {
         let {doctorId} = request.user;
         let doctor = await User.findById({_id:doctorId});
-        doctor.profile.imageName = `http://localhost:3000/doctorProfile/${doctor.profile.imageName}`;
+                doctor.profile.imageName = `http://localhost:3000/doctorProfile/${doctor.profile.imageName}`;
 
         if (doctor.doctorInfo?.certificates?.length > 0) {
       doctor.doctorInfo.certificates = doctor.doctorInfo.certificates.map((cert) => ({
@@ -207,7 +207,7 @@ export const updateProfile = async (request, response, next) => {
         if (!doctor) {
             return response.status(404).json({ error: "doctor not found" });
         }
-        console.log(doctor);
+        // console.log(doctor);
 
         if (!doctor.profile) doctor.profile = {};
         if (!doctor.doctorInfo) doctor.doctorInfo = {};

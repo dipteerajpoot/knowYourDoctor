@@ -13,6 +13,7 @@ const router = express.Router();
 router.post("/signUp",
     body("name","name is required").notEmpty(),
         body("name", "Only Alphabets are allowed").isAlpha(),
+        body("name","Name can only contain alphabets, space, underscore and hyphen").matches(/^[A-Za-z _-]/),
         body("email","email is required ").notEmpty(),
         body("email", "invalid email id").isEmail(),
         body("password", "password is required").notEmpty(),
@@ -24,7 +25,7 @@ router.post("/verification", verifyAccount);
 router.post("/signIn",signInPatient);
 router.post("/signOut",auth,logOutPatient)  
 router.patch("/createProfile",auth,upload.single("imageName"),createPatientProfile);
-router.patch("/updateImage",auth,upload.single("imageName"),updateProfile)
+router.patch("/updateProfile",auth,upload.single("imageName"),updateProfile)
 router.get("/fethcProfile",auth,fetchProfile);
 router.get("/search",auth,SearchDoctor);    
 

@@ -8,8 +8,11 @@ const PostSchema = new mongoose.Schema({
         type: String,
     },
     postImage : {
-        type:String
-    } ,
+        type:String,
+    },
+    postVideo:{
+        type:String,
+    },
     doctorId:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"user",
@@ -21,3 +24,5 @@ const PostSchema = new mongoose.Schema({
 
 })
 export const Post = mongoose.model("post",PostSchema);
+
+

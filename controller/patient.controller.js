@@ -118,7 +118,6 @@
     export const signUpPatient = async (request, response, next) => {
         try {
             //  Validate patient
-            // console.log("signUpexecuted");
             const errors = validationResult(request);
             if (!errors.isEmpty())
                 return response.status(400).json({ error: "Bad request |Data is Invalid", errorMessages: errors.array() });
@@ -129,6 +128,7 @@
             await User.create({ name, email, password, role });
             await sendEmail(name, email);
             return response.status(201).json({ message: "SignIn Successfull | Please varify your account" });
+            
         }
         catch (err) {
             console.log(err);
