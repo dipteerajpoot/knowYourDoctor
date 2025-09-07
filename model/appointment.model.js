@@ -16,7 +16,7 @@ const appointmentSchema = new  mongoose.Schema({
           email:{
             type:String,
             required:true,
-            unique:true
+            
           },
           status:{
             type:String,
@@ -33,7 +33,7 @@ const appointmentSchema = new  mongoose.Schema({
           },
 
           apmtDate :{
-            type : String,
+            type : Date,
             required : true
           },
           apmtTime :{

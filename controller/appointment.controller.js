@@ -12,8 +12,6 @@ export const createAppointment = async (req, res) => {
     }
     const isAvailable = doctor.doctorInfo.availability.some(slot => {
       const slotday = slot.day.toLowerCase();
-      const slotFrom = changeToMinut(slot.from);
-      const slotTo = changeToMinut(slot.to);
       const reqstedDay = apmtDay.toLowerCase();
       const requestedTime = changeToMinut(apmtTime);
       return (slotday === reqstedDay && requestedTime >= slotFrom && requestedTime < slotTo);

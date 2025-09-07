@@ -4,78 +4,78 @@ import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 export const updateCertificate = async (req, res) => {
-  try {
-    const { doctorId, role } = req.user;
-    let doctor = await User.findOne({ _id: doctorId, role });
+    try {
+        const { doctorId, role } = req.user;
+        let doctor = await User.findOne({ _id: doctorId, role });
 
-    if (!doctor) {
-      return res.status(404).json({ error: "Doctor not found" });
+        if (!doctor) {
+            return res.status(404).json({ error: "Doctor not found" });
+        }
+
+        const { certId } = req.params;
+        const { name, description, issuedBy, year } = req.body;
+
+        const certificate = doctor.doctorInfo.certificates.id(certId);
+        if (!certificate) {
+            return res.status(404).json({ error: "Certificate not found" });
+        }
+
+        certificate.name = name ?? certificate.name;
+        certificate.description = description ?? certificate.description;
+        certificate.issuedBy = issuedBy ?? certificate.issuedBy;
+        certificate.year = year ?? certificate.year;
+
+        await doctor.save();
+        return res.status(200).json({ message: "Certificate updated", certificates: doctor.doctorInfo.certificates });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Internal Server Error", error });
     }
-
-    const { certId } = req.params;
-    const { name, description, issuedBy, year } = req.body;
-
-    const certificate = doctor.doctorInfo.certificates.id(certId);
-    if (!certificate) {
-      return res.status(404).json({ error: "Certificate not found" });
-    }
-
-    certificate.name = name ?? certificate.name;
-    certificate.description = description ?? certificate.description;
-    certificate.issuedBy = issuedBy ?? certificate.issuedBy;
-    certificate.year = year ?? certificate.year;
-
-    await doctor.save();
-    return res.status(200).json({ message: "Certificate updated", certificates: doctor.doctorInfo.certificates });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Internal Server Error", error });
-  }
 };
 
 export const deleteCertificate = async (req, res) => {
-  try {
-    const { doctorId, role } = req.user;
-    let doctor = await User.findOne({ _id: doctorId, role });
+    try {
+        const { doctorId, role } = req.user;
+        let doctor = await User.findOne({ _id: doctorId, role });
 
-    if (!doctor) {
-      return res.status(404).json({ error: "Doctor not found" });
+        if (!doctor) {
+            return res.status(404).json({ error: "Doctor not found" });
+        }
+
+        const { certId } = req.params;
+        doctor.doctorInfo.certificates = doctor.doctorInfo.certificates.filter(
+            (cert) => cert._id.toString() !== certId
+        );
+
+        await doctor.save();
+
+        return res.status(200).json({ message: "Certificate deleted", certificates: doctor.doctorInfo.certificates });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Internal Server Error", error });
     }
-
-    const { certId } = req.params;
-    doctor.doctorInfo.certificates = doctor.doctorInfo.certificates.filter(
-      (cert) => cert._id.toString() !== certId
-    );
-
-    await doctor.save();
-
-    return res.status(200).json({ message: "Certificate deleted", certificates: doctor.doctorInfo.certificates });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Internal Server Error", error });
-  }
 };
 
 
 export const addCertificate = async (req, res) => {
-  try {
-    const { doctorId, role } = req.user;
-    if (role !== "doctor") {
-      return res.status(403).json({ message: "Only doctors can add certificates" });
+    try {
+        const { doctorId, role } = req.user;
+        if (role !== "doctor") {
+            return res.status(403).json({ message: "Only doctors can add certificates" });
+        }
+        const { name, description } = req.body;
+        const certificate = req.file?.filename ?? "";
+        // if (!description) {
+        //   return res.status(400).json({ message: "Certificate name or image are required" });
+        // }
+        const doctor = await User.findByIdAndUpdate(doctorId, { $push: { "doctorInfo.certificates": { name, description, date: new Date(), certificate }, }, }, { new: true });
+        if (!doctor)
+            return res.status(404).json({ error: "doctor not found || Anauthorize user" })
+        return res.status(200).json({ message: "Certificate added successfully", certificate });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal Server Error", error });
     }
-    const { name, description} = req.body;
-    const certificate = req.file?.filename??"";
-    // if (!description) {
-    //   return res.status(400).json({ message: "Certificate name or image are required" });
-    // }
-    const doctor = await User.findByIdAndUpdate(doctorId, { $push:{ "doctorInfo.certificates":{name,description, date:new Date(),certificate},},},{new: true});
-    if(!doctor)
-        return res.status(404).json({error : "doctor not found || Anauthorize user"})
-    return res.status(200).json({message: "Certificate added successfully",certificate});
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error", error });
-  }
 };
 
 
@@ -85,8 +85,8 @@ export const doctorList = async (request, response, next) => {
         let doctors = await User.find({ role: "doctor" });
         doctors.forEach(doctor => {
             if (doctor.profile && doctor.profile.imageName) {
-        doctor.profile.imageName = `http://localhost:3000/doctorProfile/${doctor.profile.imageName}`;
-        }
+                doctor.profile.imageName = `http://localhost:3000/doctorProfile/${doctor.profile.imageName}`;
+            }
         })
         return response.status(200).json({ message: "doctorList", doctors })
 
@@ -98,7 +98,7 @@ export const doctorList = async (request, response, next) => {
 
 // export const SearchDoctor = async (request, response) => {
 //     try {
-        
+
 //         const { name, location, disease, city } = request.query;
 //         console.log("serching", name)   
 //         let query = { role: "doctor" };
@@ -127,34 +127,34 @@ export const doctorList = async (request, response, next) => {
 // };
 
 export const SearchDoctor = async (req, res) => {
-  try {
-    const { term } = req.query; 
-    console.log("w are searchinf ",term)
-    if (!term) return res.status(200).json({ message: "No search term", doctors: [] });
+    try {
+        const { term } = req.query;
+        console.log("w are searchinf ", term)
+        if (!term) return res.status(200).json({ message: "No search term", doctors: [] });
 
-    // split by space, remove empty strings
-    const terms = term.split(" ").filter(Boolean);
+        // split by space, remove empty strings
+        const terms = term.split(" ").filter(Boolean);
 
-    const doctors = await User.find({
-      role: "doctor",
-      $and: terms.map(word => ({
-        $or: [
-          { name: { $regex: word, $options: "i" } },
-          { "doctorInfo.specialization": { $regex: word, $options: "i" } },
-          { "doctorInfo.disease": { $regex: word, $options: "i" } },
-          { "profile.address": { $regex: word, $options: "i" } },
-        ]
-      }))
-    });
+        const doctors = await User.find({
+            role: "doctor",
+            $and: terms.map(word => ({
+                $or: [
+                    { name: { $regex: word, $options: "i" } },
+                    { "doctorInfo.specialization": { $regex: word, $options: "i" } },
+                    { "doctorInfo.disease": { $regex: word, $options: "i" } },
+                    { "profile.address": { $regex: word, $options: "i" } },
+                ]
+            }))
+        });
 
-    if (!doctors || doctors.length === 0)
-      return res.status(200).json({ message: "No doctor found", doctors: [] });
+        if (!doctors || doctors.length === 0)
+            return res.status(200).json({ message: "No doctor found", doctors: [] });
 
-    return res.status(200).json({ message: "Doctor data found", doctors });
-  } catch (error) {
-    console.error("Search Error:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
+        return res.status(200).json({ message: "Doctor data found", doctors });
+    } catch (error) {
+        console.error("Search Error:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
 };
 
 
@@ -165,11 +165,11 @@ export const fetchProfile = async (request, response) => {
         doctor.profile.imageName = `http://localhost:3000/doctorProfile/${doctor.profile.imageName}`;
 
         if (doctor.doctorInfo?.certificates?.length > 0) {
-      doctor.doctorInfo.certificates = doctor.doctorInfo.certificates.map((cert) => ({
-        ...cert._doc,
-        certificate: `http://localhost:3000/certi/${cert.certificate}`,
-      }));
-    }
+            doctor.doctorInfo.certificates = doctor.doctorInfo.certificates.map((cert) => ({
+                ...cert._doc,
+                certificate: `http://localhost:3000/certi/${cert.certificate}`,
+            }));
+        }
 
         return response.status(201).json({ doctor });
     } catch (error) {
@@ -180,16 +180,16 @@ export const fetchProfile = async (request, response) => {
 
 export const getProfile = async (request, response) => {
     try {
-        let {doctorId} = request.user;
-        let doctor = await User.findById({_id:doctorId});
-                doctor.profile.imageName = `http://localhost:3000/doctorProfile/${doctor.profile.imageName}`;
+        let { doctorId } = request.user;
+        let doctor = await User.findById({ _id: doctorId });
+        doctor.profile.imageName = `http://localhost:3000/doctorProfile/${doctor.profile.imageName}`;
 
         if (doctor.doctorInfo?.certificates?.length > 0) {
-      doctor.doctorInfo.certificates = doctor.doctorInfo.certificates.map((cert) => ({
-        ...cert._doc,
-        certificate: `http://localhost:3000/certi/${cert.certificate}`,
-      }));
-    }
+            doctor.doctorInfo.certificates = doctor.doctorInfo.certificates.map((cert) => ({
+                ...cert._doc,
+                certificate: `http://localhost:3000/certi/${cert.certificate}`,
+            }));
+        }
 
         return response.status(201).json({ doctor });
     } catch (error) {
@@ -209,6 +209,7 @@ export const updateProfile = async (request, response, next) => {
         }
         // console.log(doctor);
 
+
         if (!doctor.profile) doctor.profile = {};
         if (!doctor.doctorInfo) doctor.doctorInfo = {};
 
@@ -217,23 +218,33 @@ export const updateProfile = async (request, response, next) => {
         doctor.role = request.body.role ?? doctor.role;
         doctor.profile.imageName = request.file?.filename ?? doctor.profile.imageName;
         doctor.profile.address = request.body.address ?? doctor.profile.address;
-        doctor.profile.phone = request.body.phone ?? doctor.profile.phone ;
-        doctor.profile.bio = request.body.bio ?? doctor.profile.bio ;
-        doctor.doctorInfo.specialization = request.body.specialization ?? doctor.doctorInfo.specialization ;
+        doctor.profile.phone = request.body.phone ?? doctor.profile.phone;
+        doctor.profile.bio = request.body.bio ?? doctor.profile.bio;
+        doctor.doctorInfo.specialization = request.body.specialization ?? doctor.doctorInfo.specialization;
         doctor.doctorInfo.experience = request.body.experience ?? doctor.doctorInfo.experience;
         doctor.doctorInfo.education = request.body.education ?? doctor.doctorInfo.education;
-        doctor.doctorInfo.location = request.body.location ?? doctor.doctorInfo.location ;
+        doctor.doctorInfo.location = request.body.location ?? doctor.doctorInfo.location;
 
         const availability = request.body.availability;
         if (availability && Array.isArray(availability)) {
-            doctor.doctorInfo.availability = availability.map(slot => ({
-                day: slot.day,
-                from: changeToMinute(slot.from),
-                to: changeToMinute(slot.to)
-            }));
+            const valid = availability.every(slot => {
+                if (!slot.from || !slot.to) return false;
+                const timeFormat = /^\d{2}:\d{2}$/;
+                if (!timeFormat.test(slot.from) || !timeFormat.test(slot.to)) return false;
+                const from = changeToMinute(slot.from);
+                const to = changeToMinute(slot.to);
+                if (from === to) return false;
+                return true;
+            });
+
+            if (!valid) {
+                return response.status(400).json({ error: "Invalid availability format or 'from' >= 'to'" });
+            }
+            doctor.doctorInfo.availability = availability;
+            console.log("ok");
         }
         await doctor.save();
-        return response.status(200).json({ message: "Profile updated successfully",doctor});
+        return response.status(200).json({ message: "Profile updated successfully", doctor });
 
     } catch (error) {
         console.log(error);
@@ -241,23 +252,23 @@ export const updateProfile = async (request, response, next) => {
     }
 };
 
-// function changeToMinute(time) {
-//     const [hours, minutes] = time.split(":").map(Number);
-//     return hours * 60 + minutes;
-// }
-const changeToMinute = (time) => {
-    if (!time) return 0;
-    let [hr, minPart] = time.split(":");
-    let min = parseInt(minPart) || 0;
-    let isPM = time.toLowerCase().includes("pm");
-    let isAM = time.toLowerCase().includes("am");
+function changeToMinute(time) {
+    const [hours, minutes] = time.split(":").map(Number);
+    return hours * 60 + minutes;
+}
+// const changeToMinute = (time) => {
+//     if (!time) return 0;
+//     let [hr, minPart] = time.split(":");
+//     let min = parseInt(minPart) || 0;
+//     let isPM = time.toLowerCase().includes("pm");
+//     let isAM = time.toLowerCase().includes("am");
 
-    hr = parseInt(hr) || 0;
-    if (isPM && hr < 12) hr += 12;
-    if (isAM && hr === 12) hr = 0;
+//     hr = parseInt(hr) || 0;
+//     if (isPM && hr < 12) hr += 12;
+//     if (isAM && hr === 12) hr = 0;
 
-    return hr * 60 + min;
-};
+//     return hr * 60 + min;
+// };
 
 export const createDocProfile = async (request, response, next) => {
     try {
@@ -279,11 +290,14 @@ export const createDocProfile = async (request, response, next) => {
         doctor.doctorInfo.location = request.body.location;
         const availability = request.body.availability;
         if (availability && Array.isArray(availability)) {
-            doctor.doctorInfo.availability = availability.map(slot => ({
-                day: slot.day,
-                from: changeToMinute(slot.from),
-                to: changeToMinute(slot.to)
-            }));
+            const valid = availability.every(slot => {
+                return slot.from && slot.to && /^\d{2}:\d{2}$/.test(slot.from) && /^\d{2}:\d{2}$/.test(slot.to) &&
+                    changeToMinute(slot.from) < changeToMinute(slot.to);
+            });
+            if (!valid) {
+                return response.status(400).json({ error: "Invalid availability format or 'from' >= 'to'" });
+            }
+            doctor.doctorInfo.availability = availability;
         }
 
         await doctor.save();
