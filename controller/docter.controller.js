@@ -78,23 +78,46 @@ export const addCertificate = async (req, res) => {
     }
 };
 
-
-
 export const doctorList = async (request, response, next) => {
     try {
-        let doctors = await User.find({ role: "doctor" });
+        // Find doctors and sort by latest updated first
+        let doctors = await User.find({ role: "doctor" })
+            .sort({ updatedAt: -1 });  // 🟢 newest updated doctor first
+
+        // Update image path
         doctors.forEach(doctor => {
             if (doctor.profile && doctor.profile.imageName) {
                 doctor.profile.imageName = `http://localhost:3000/doctorProfile/${doctor.profile.imageName}`;
             }
-        })
-        return response.status(200).json({ message: "doctorList", doctors })
+        });
+
+        return response.status(200).json({ message: "doctorList", doctors });
 
     } catch (error) {
         console.log(error);
-        return response.status(500).json("Internel server error");
+        return response.status(500).json("Internal server error");
     }
-}
+};
+
+
+// export const doctorList = async (request, response, next) => {
+//     try {
+//         // Find only doctors and sort by newest first
+//         let doctors = await User.find({ role: "doctor" })
+//             .sort({ createdAt: -1 });  // -1 => descending (newest first)
+//         doctors.forEach(doctor => {
+//             if (doctor.profile && doctor.profile.imageName) {
+//                 doctor.profile.imageName = `http://localhost:3000/doctorProfile/${doctor.profile.imageName}`;
+//             }
+//         });
+
+//         return response.status(200).json({ message: "doctorList", doctors });
+
+//     } catch (error) {
+//         console.log(error);
+//         return response.status(500).json("Internal server error");
+//     }
+// };
 
 // export const SearchDoctor = async (request, response) => {
 //     try {
@@ -129,7 +152,7 @@ export const doctorList = async (request, response, next) => {
 export const SearchDoctor = async (req, res) => {
     try {
         const { term } = req.query;
-        console.log("w are searchinf ", term)
+        console.log("ware searchinf ", term)
         if (!term) return res.status(200).json({ message: "No search term", doctors: [] });
 
         // split by space, remove empty strings
@@ -157,49 +180,80 @@ export const SearchDoctor = async (req, res) => {
     }
 };
 
-
 export const fetchProfile = async (request, response) => {
     try {
         let { id } = request.params;
         let doctor = await User.findById(id);
-        doctor.profile.imageName = `http://localhost:3000/doctorProfile/${doctor.profile.imageName}`;
 
+        // Profile image path
+        if (doctor?.profile?.imageName) {
+            doctor.profile.imageName = `http://localhost:3000/doctorProfile/${doctor.profile.imageName}`;
+        }
+        // Certificates in descending order
         if (doctor.doctorInfo?.certificates?.length > 0) {
-            doctor.doctorInfo.certificates = doctor.doctorInfo.certificates.map((cert) => ({
-                ...cert._doc,
-                certificate: `http://localhost:3000/certi/${cert.certificate}`,
-            }));
+            doctor.doctorInfo.certificates = doctor.doctorInfo.certificates
+                .map(cert => ({
+                    ...cert._doc,
+                    certificate: `http://localhost:3000/certi/${cert.certificate}`,
+                }))
+                .sort((a, b) => new Date(b.date) - new Date(a.date)); 
         }
 
         return response.status(201).json({ doctor });
     } catch (error) {
         console.log(error);
-        return response.status(500).json({ error: "Internel server error" });
+        return response.status(500).json({ error: "Internal server error" });
     }
 };
+
+// export const fetchProfile = async (request, response) => {
+//     try {
+//         let { id } = request.params;
+//         let doctor = await User.findById(id);
+//         doctor.profile.imageName = `http://localhost:3000/doctorProfile/${doctor.profile.imageName}`;
+
+//         if (doctor.doctorInfo?.certificates?.length > 0) {
+//             doctor.doctorInfo.certificates = doctor.doctorInfo.certificates.map((cert) => ({
+//                 ...cert._doc,
+//                 certificate: `http://localhost:3000/certi/${cert.certificate}`,
+//             }));
+//         }
+
+//         return response.status(201).json({ doctor });
+//     } catch (error) {
+//         console.log(error);
+//         return response.status(500).json({ error: "Internel server error" });
+//     }
+// };
 
 export const getProfile = async (request, response) => {
     try {
         let { doctorId } = request.user;
         let doctor = await User.findById({ _id: doctorId });
-        doctor.profile.imageName = `http://localhost:3000/doctorProfile/${doctor.profile.imageName}`;
 
+        // Profile image path update
+        if (doctor?.profile?.imageName) {
+            doctor.profile.imageName = `http://localhost:3000/doctorProfile/${doctor.profile.imageName}`;
+        }
         if (doctor.doctorInfo?.certificates?.length > 0) {
-            doctor.doctorInfo.certificates = doctor.doctorInfo.certificates.map((cert) => ({
-                ...cert._doc,
-                certificate: `http://localhost:3000/certi/${cert.certificate}`,
-            }));
+            doctor.doctorInfo.certificates = doctor.doctorInfo.certificates
+                .map(cert => ({
+                    ...cert._doc,
+                    certificate: `http://localhost:3000/certi/${cert.certificate}`,
+                }))
+                .sort((a, b) => new Date(b.date) - new Date(a.date)); 
         }
 
         return response.status(201).json({ doctor });
     } catch (error) {
         console.log(error);
-        return response.status(500).json({ error: "Internel server error" });
+        return response.status(500).json({ error: "Internal server error" });
     }
 };
 
 
-export const updateProfile = async (request, response, next) => {
+
+export const updateProfile = async (request, response) => {
     try {
         console.log("update Profile executed");
         const { doctorId, role } = request.user;
@@ -207,12 +261,11 @@ export const updateProfile = async (request, response, next) => {
         if (!doctor) {
             return response.status(404).json({ error: "doctor not found" });
         }
-        // console.log(doctor);
-
 
         if (!doctor.profile) doctor.profile = {};
         if (!doctor.doctorInfo) doctor.doctorInfo = {};
 
+        // Basic updates
         doctor.name = request.body.name ?? doctor.name;
         doctor.email = request.body.email ?? doctor.email;
         doctor.role = request.body.role ?? doctor.role;
@@ -220,37 +273,47 @@ export const updateProfile = async (request, response, next) => {
         doctor.profile.address = request.body.address ?? doctor.profile.address;
         doctor.profile.phone = request.body.phone ?? doctor.profile.phone;
         doctor.profile.bio = request.body.bio ?? doctor.profile.bio;
+
         doctor.doctorInfo.specialization = request.body.specialization ?? doctor.doctorInfo.specialization;
         doctor.doctorInfo.experience = request.body.experience ?? doctor.doctorInfo.experience;
         doctor.doctorInfo.education = request.body.education ?? doctor.doctorInfo.education;
         doctor.doctorInfo.location = request.body.location ?? doctor.doctorInfo.location;
 
+        // Availability validation
         const availability = request.body.availability;
         if (availability && Array.isArray(availability)) {
             const valid = availability.every(slot => {
-                if (!slot.from || !slot.to) return false;
+                if (!slot.date || !slot.from || !slot.to) return false;
+
+                // Check date is valid
+                if (isNaN(new Date(slot.date).getTime())) return false;
+
                 const timeFormat = /^\d{2}:\d{2}$/;
                 if (!timeFormat.test(slot.from) || !timeFormat.test(slot.to)) return false;
+                    
                 const from = changeToMinute(slot.from);
                 const to = changeToMinute(slot.to);
-                if (from === to) return false;
+                if (from >= to) return false;
+
                 return true;
             });
 
             if (!valid) {
-                return response.status(400).json({ error: "Invalid availability format or 'from' >= 'to'" });
+                return response.status(400).json({ error: "Invalid availability: check date, time format, or from >= to" });
             }
+
             doctor.doctorInfo.availability = availability;
-            console.log("ok");
         }
+
         await doctor.save();
         return response.status(200).json({ message: "Profile updated successfully", doctor });
 
     } catch (error) {
         console.log(error);
-        return response.status(500).json({ error: "Internal Server Error", error });
+        return response.status(500).json({ error: "Internal Server Error", details: error.message });
     }
 };
+
 
 function changeToMinute(time) {
     const [hours, minutes] = time.split(":").map(Number);
@@ -275,38 +338,51 @@ export const createDocProfile = async (request, response, next) => {
         const { doctorId, role } = request.user;
         let doctor = await User.findOne({ _id: doctorId, role });
         if (!doctor) {
-            return response.status(404).json({ error: " doctor not found || First signIn  the User" });
+            return response.status(404).json({ error: "Doctor not found || First signIn the User" });
         }
+        // Basic profile info
         doctor.name = request.body.name ?? doctor.name;
         doctor.email = request.body.email ?? doctor.email;
         doctor.role = request.body.role ?? doctor.role;
-        doctor.profile.imageName = request.file?.filename;
-        doctor.profile.address = request.body.address;
-        doctor.profile.phone = request.body.phone;
-        doctor.profile.bio = request.body.bio;
-        doctor.doctorInfo.specialization = request.body.specialization;
-        doctor.doctorInfo.experience = request.body.experience;
-        doctor.doctorInfo.education = request.body.education;
-        doctor.doctorInfo.location = request.body.location;
-        const availability = request.body.availability;
+        doctor.profile.imageName = request.file?.filename ?? doctor.profile.imageName;
+        doctor.profile.address = request.body.address ?? doctor.profile.address;
+        doctor.profile.phone = request.body.phone ?? doctor.profile.phone;
+        doctor.profile.bio = request.body.bio ?? doctor.profile.bio;
+
+        doctor.doctorInfo.specialization = request.body.specialization ?? doctor.doctorInfo.specialization;
+        doctor.doctorInfo.experience = request.body.experience ?? doctor.doctorInfo.experience;
+        doctor.doctorInfo.education = request.body.education ?? doctor.doctorInfo.education;
+        doctor.doctorInfo.location = request.body.location ?? doctor.doctorInfo.location;
+            const availability = request.body.availability;
         if (availability && Array.isArray(availability)) {
             const valid = availability.every(slot => {
-                return slot.from && slot.to && /^\d{2}:\d{2}$/.test(slot.from) && /^\d{2}:\d{2}$/.test(slot.to) &&
-                    changeToMinute(slot.from) < changeToMinute(slot.to);
+                if (!slot.date || !slot.from || !slot.to) return false;
+                // validate date
+                if (isNaN(new Date(slot.date).getTime())) return false;
+                // validate time format
+                const timeFormat = /^\d{2}:\d{2}$/;
+                if (!timeFormat.test(slot.from) || !timeFormat.test(slot.to)) return false;
+                // compare from < to
+                const from = changeToMinute(slot.from);
+                const to = changeToMinute(slot.to);
+                if (from >= to) return false; 
+                return true;
             });
             if (!valid) {
-                return response.status(400).json({ error: "Invalid availability format or 'from' >= 'to'" });
+                return response.status(400).json({ error: "Invalid availability: check date, time format, or from >= to" });
             }
             doctor.doctorInfo.availability = availability;
         }
 
         await doctor.save();
-        return response.status(200).json({ message: "Profile Updated successfully" })
+        return response.status(200).json({ message: "Profile created/updated successfully", doctor });
+
     } catch (error) {
-        console.log(error)
-        return response.status(500).json({ error: "Internal Server Error", error });
+        console.log(error);
+        return response.status(500).json({ error: "Internal Server Error", details: error.message });
     }
 }
+
 
 export const logoutDoctor = async (request, response, next) => {
     try {

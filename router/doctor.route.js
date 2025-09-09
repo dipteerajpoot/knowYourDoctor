@@ -1,4 +1,4 @@
-import { getProfile,doctorList,signUpDoctor , varifyAccount ,signInDoctor,logoutDoctor , createDocProfile,updateProfile,fetchProfile, SearchDoctor ,addCertificate,updateCertificate,deleteCertificate} from "../controller/docter.controller.js";
+import { getProfile,doctorList,signUpDoctor , varifyAccount ,signInDoctor,logoutDoctor , createDocProfile,updateProfile,fetchProfile, SearchDoctor ,addCertificate,updateCertificate,deleteCertificate,} from "../controller/docter.controller.js";
 import {auth} from "../middleware/auth.js"
 import { body }from "express-validator";
 import express from "express";
@@ -15,7 +15,7 @@ router.post("/signUp",body("name","name is required").notEmpty(),
     body("password", "password is required").notEmpty(),
     body("password","password is between 8 to 10 charctor").isLength({ min: 8, max: 10 }),
     body("role","role is required").isAlpha(),
- signUpDoctor 
+ signUpDoctor
 )
 
 router.post("/verification" , varifyAccount);

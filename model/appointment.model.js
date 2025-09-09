@@ -35,18 +35,26 @@ const appointmentSchema = new  mongoose.Schema({
           apmtDate :{
             type : Date,
             required : true
+
           },
+
           apmtTime :{
             type : String,
-            required : true
+            required : true,
+            // unique:true,
           },
-          apmtDay:{
+          cancelReason:{
             type:String,
-            required:true
+            default:""
           },
           mobile:{
             type:String,
-          }
+          },
+            cancelledBy: {
+             type: String,
+             enum: ["doctor", "patient", ""], 
+             default: ""
+  }
 })
 
 export const Appointment = mongoose.model("appointment",appointmentSchema);

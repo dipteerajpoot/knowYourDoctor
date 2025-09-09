@@ -44,16 +44,19 @@ const UserSchema = new mongoose.Schema({
                 description: String,
                 date: Date,
                 certificate: String
-
+                
             }
         ],
         availability: [
             {
+                date:Date,
                 from: {
                     type: String,
+                    unique:true,
                 },
                 to: {
                     type: String,
+                    unique:true,
                 }
             }
         ],
