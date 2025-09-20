@@ -28,7 +28,6 @@ mongoose.connect(process.env.DB_URL)
         app.use("/patient", patientRoute);
         app.use("/post", postRoute);
         app.use("/aptmt", appintmentRouter);
-
         app.listen(process.env.PORT, () => {
             console.log("server started");
         })

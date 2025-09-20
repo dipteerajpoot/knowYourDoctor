@@ -228,7 +228,7 @@ export const getAppointmentsByStatus = async (req, res) => {
 
     // Fetch and sort appointments
     const appointments = await Appointment.find(filter)
-      .populate(role === "doctor" ? "patientId" : "doctorId", "name email")
+    .populate(role === "doctor" ? "patientId" : "doctorId", "name email imageName")
       .sort({ apmtDate: sort === "asc" ? 1 : -1, apmtTime: sort === "asc" ? 1 : -1 });
 
     if (!appointments.length) {
@@ -248,16 +248,47 @@ export const getAppointmentsByStatus = async (req, res) => {
 
 // COMMON: View Appointments (role based) 
 
+// export const viewAppointments = async (req, res) => {
+//   try {
+//     const { role, doctorId, patientId } = req.user;
+//     const filter = role === "doctor" ? { doctorId } : { patientId };
+
+//     const appointments = await Appointment.find(filter)
+//     .populate(role === "doctor" ? "patientId" : "doctorId", "name  profile.imageName")
+//       .sort({ apmtDate: 1, apmtTime: 1 });
+//       console.log(appointments);
+
+//     res.status(200).json({ message: "Appointments retrieved", appointments });
+//   } catch (error) {
+//     console.error("View appointments error:", error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// };
 export const viewAppointments = async (req, res) => {
   try {
     const { role, doctorId, patientId } = req.user;
     const filter = role === "doctor" ? { doctorId } : { patientId };
-
     const appointments = await Appointment.find(filter)
-      .populate(role === "doctor" ? "patientId" : "doctorId", "name email")
-      .sort({ apmtDate: 1, apmtTime: 1 });
+      .populate(role === "doctor" ? "patientId" : "doctorId", "name email profile.imageName")
+      .sort({ apmtDate: 1, apmtTime: 1 })
+      .lean(); // lean() taaki plain JS object mile
 
-    res.status(200).json({ message: "Appointments retrieved", appointments });
+    // const BASE_URL = "http://localhost:3000/patientProfile";
+
+    const updatedAppointments = appointments.map(appt => {
+      if (role === "doctor") {
+        if (appt.patientId?.profile?.imageName) {
+          appt.patientId.profile.imageURL = `http://localhost:3000/patientProfile/${appt.patientId.profile.imageName}`;
+        }
+      } else {
+        if (appt.doctorId?.profile?.imageName) {
+          appt.doctorId.profile.imageURL = `http://localhost:3000/doctorProfile/${appt.doctorId.profile.imageName}`;
+        }
+      }
+      return appt;
+    });
+
+    res.status(200).json({ message: "Appointments retrieved", appointments: updatedAppointments });
   } catch (error) {
     console.error("View appointments error:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -272,7 +303,6 @@ export const confirmAppointment = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-
     if (!["confirm", "reject"].includes(status)) {
       return res.status(400).json({ error: "Invalid status" });
     }
@@ -291,7 +321,7 @@ export const confirmAppointment = async (req, res, next) => {
     await appointment.save();
 
     // Optional: populate patient info
-    await appointment.populate("patientId", "name email");
+    await appointment.populate("patientId", "name imageName");
 
     return res.status(200).json({
       message: `Appointment ${status === "confirm" ? "confirmed" : "rejected"}`,
@@ -329,7 +359,7 @@ export const completeAppointment = async (req, res) => {
     appointment.status = "completed";
     await appointment.save();
 
-    await appointment.populate("patientId", "name email");
+    await appointment.populate("patientId", "name imageName");
 
     return res.status(200).json({ message: "Appointment marked as completed", appointment });
   } catch (error) {

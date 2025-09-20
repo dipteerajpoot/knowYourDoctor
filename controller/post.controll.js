@@ -116,7 +116,7 @@ export const getPostforCurruntDoctor = async (req, res, next) => {
         const updatedPosts = posts.map(post => ({
             ...post._doc,
             postImage: post.postImage 
-                ? `http://localhost:3000/posts/${post.postImage}` 
+                ? ` posts/${post.postImage}` 
                 : null,
             postVideo: post.postVideo 
                 ? `http://localhost:3000/posts/${post.postVideo}` 
