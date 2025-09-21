@@ -20,7 +20,7 @@ mongoose.connect(process.env.DB_URL)
             credentials:true
         }
         ));
-        app.use(bodyparser.json()); 
+        app.use(bodyparser.json());
         app.use(bodyparser.urlencoded({ extended: true }));
         app.use(cookieParser())
         app.use(express.static("public"));
