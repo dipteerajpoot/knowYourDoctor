@@ -1,7 +1,10 @@
 import { Appointment } from "../model/appointment.model.js";
 import { User } from "../model/user.model.js";
 // PATIENT: Create Appointment
-
+const baseURL =
+  process.env.NODE_ENV === 'production'
+    ? 'https://knowyourdoctor.onrender.com'
+    : 'http://localhost:3000';
 const getDayFromDate = (dateString) => {
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const date = new Date(dateString);
@@ -273,16 +276,16 @@ export const viewAppointments = async (req, res) => {
       .sort({ apmtDate: 1, apmtTime: 1 })
       .lean(); // lean() taaki plain JS object mile
 
-    // const BASE_URL = "http://localhost:3000/patientProfile";
+    // const BASE_URL = "${baseURL}/patientProfile";
 
     const updatedAppointments = appointments.map(appt => {
       if (role === "doctor") {
         if (appt.patientId?.profile?.imageName) {
-          appt.patientId.profile.imageURL = `https://knowyourdoctor.onrender.com/patientProfile/${appt.patientId.profile.imageName}`;
+          appt.patientId.profile.imageURL = `${baseURL}/patientProfile/${appt.patientId.profile.imageName}`;
         }
       } else {
         if (appt.doctorId?.profile?.imageName) {
-          appt.doctorId.profile.imageURL = `https://knowyourdoctor.onrender.com/doctorProfile/${appt.doctorId.profile.imageName}`;
+          appt.doctorId.profile.imageURL = `${baseURL}/doctorProfile/${appt.doctorId.profile.imageName}`;
         }
       }
       return appt;

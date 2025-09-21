@@ -33,6 +33,10 @@ export const updateCertificate = async (req, res) => {
     }
 };
 
+const baseURL =
+  process.env.NODE_ENV === 'production'
+    ? 'https://knowyourdoctor.onrender.com'
+    : '${baseURL}';
 export const deleteCertificate = async (req, res) => {
     try {
         const { doctorId, role } = req.user;
@@ -87,7 +91,7 @@ export const doctorList = async (request, response, next) => {
         // Update image path
         doctors.forEach(doctor => {
             if (doctor.profile && doctor.profile.imageName) {
-                doctor.profile.imageName = `https://knowyourdoctor.onrender.com/doctorProfile/${doctor.profile.imageName}`;
+                doctor.profile.imageName = `${baseURL}/doctorProfile/${doctor.profile.imageName}`;
             }
         });
 
@@ -107,7 +111,7 @@ export const doctorList = async (request, response, next) => {
 //             .sort({ createdAt: -1 });  // -1 => descending (newest first)
 //         doctors.forEach(doctor => {
 //             if (doctor.profile && doctor.profile.imageName) {
-//                 doctor.profile.imageName = `http://localhost:3000/doctorProfile/${doctor.profile.imageName}`;
+//                 doctor.profile.imageName = `${baseURL}/doctorProfile/${doctor.profile.imageName}`;
 //             }
 //         });
 
@@ -187,14 +191,14 @@ export const fetchProfile = async (request, response) => {
 
         // Profile image path
         if (doctor?.profile?.imageName) {
-            doctor.profile.imageName = `https://knowyourdoctor.onrender.com/doctorProfile/${doctor.profile.imageName}`;
+            doctor.profile.imageName = `${baseURL}/doctorProfile/${doctor.profile.imageName}`;
         }
         // Certificates in descending order
         if (doctor.doctorInfo?.certificates?.length > 0) {
             doctor.doctorInfo.certificates = doctor.doctorInfo.certificates
                 .map(cert => ({
                     ...cert._doc,
-                    certificate: `https://knowyourdoctor.onrender.com/certi/${cert.certificate}`,
+                    certificate: `${baseURL}/certi/${cert.certificate}`,
                 }))
                 .sort((a, b) => new Date(b.date) - new Date(a.date)); 
         }
@@ -210,12 +214,12 @@ export const fetchProfile = async (request, response) => {
 //     try {
 //         let { id } = request.params;
 //         let doctor = await User.findById(id);
-//         doctor.profile.imageName = `http://localhost:3000/doctorProfile/${doctor.profile.imageName}`;
+//         doctor.profile.imageName = `${baseURL}/doctorProfile/${doctor.profile.imageName}`;
 
 //         if (doctor.doctorInfo?.certificates?.length > 0) {
 //             doctor.doctorInfo.certificates = doctor.doctorInfo.certificates.map((cert) => ({
 //                 ...cert._doc,
-//                 certificate: `http://localhost:3000/certi/${cert.certificate}`,
+//                 certificate: `${baseURL}/certi/${cert.certificate}`,
 //             }));
 //         }
 
@@ -233,13 +237,13 @@ export const getProfile = async (request, response) => {
 
         // Profile image path update
         if (doctor?.profile?.imageName) {
-            doctor.profile.imageName = `https://knowyourdoctor.onrender.com/doctorProfile/${doctor.profile.imageName}`;
+            doctor.profile.imageName = `${baseURL}/doctorProfile/${doctor.profile.imageName}`;
         }
         if (doctor.doctorInfo?.certificates?.length > 0) {
             doctor.doctorInfo.certificates = doctor.doctorInfo.certificates
                 .map(cert => ({
                     ...cert._doc,
-                    certificate: `https://knowyourdoctor.onrender.com/certi/${cert.certificate}`,
+                    certificate: `${baseURL}/certi/${cert.certificate}`,
                 }))
                 .sort((a, b) => new Date(b.date) - new Date(a.date)); 
         }
@@ -486,7 +490,7 @@ const sendEmail = (name, email) => {
             subject: "Accounte Verification",
             html: `<h3>Dear ${name} </h3>
             <p>Welcome to know your Doctor. Please verify its you if not you dont accept the cookies.</p>
-            <form method = "post" action = "https://knowyourdoctor.onrender.com/doctor/verification">
+            <form method = "post" action = "${baseURL}/doctor/verification">
             <input type = "hidden" name = "email" value =" ${email}" />
             <button type="submit" style="background-color: blue; color:white; width:200px; border: none; border: 1px solid gray; border-radius:10px;">Verify</button>
             </form>

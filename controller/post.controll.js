@@ -2,7 +2,10 @@ import { request, response } from "express"
 import { Post } from "../model/post.model.js"
 import mongoose from "mongoose";
 //creating the post only for doctor
-
+const baseURL =
+  process.env.NODE_ENV === 'production'
+    ? 'https://knowyourdoctor.onrender.com'
+    : '${baseURL}';
 
 // routes/postRoutes.js
 export const likePost =async (req, res) => {
@@ -87,8 +90,8 @@ export const fetchAllPost = async (req, res, next) => {
 
         const updatedPosts = posts.map(post => ({
             ...post._doc, 
-            postImage: post.postImage ? `https://knowyourdoctor.onrender.com/${post.postImage}` : null,
-            postVideo: post.postVideo ? `https://knowyourdoctor.onrender.com/${post.postVideo}` : null
+            postImage: post.postImage ? `${baseURL}/${post.postImage}` : null,
+            postVideo: post.postVideo ? `${baseURL}/${post.postVideo}` : null
         }));
 
         return res.status(200).json({ message: "Posts fetched successfully", posts: updatedPosts });
@@ -119,7 +122,7 @@ export const getPostforCurruntDoctor = async (req, res, next) => {
                 ? ` posts/${post.postImage}` 
                 : null,
             postVideo: post.postVideo 
-                ? `https://knowyourdoctor.onrender.com/${post.postVideo}` 
+                ? `${baseURL}/posts/${post.postVideo}` 
                 : null,
         }));
 
@@ -145,10 +148,10 @@ export const getPostByDoctorId = async (req, res, next) => {
         const updatedPosts = posts.map(post => ({
             ...post._doc,
             postImage: post.postImage 
-                ? `https://knowyourdoctor.onrender.com/${post.postImage}` 
+                ? `${baseURL}/posts/${post.postImage}` 
                 : null,
             postVideo: post.postVideo 
-                ? `https://knowyourdoctor.onrender.com/${post.postVideo}` 
+                ? `${baseURL}/posts/${post.postVideo}` 
                 : null,
         }));
 
@@ -200,8 +203,8 @@ export const updatePost = async (req, res) => {
             message: "Post updated",
             post: {
                 ...post._doc,
-                postImage: post.postImage ? `https://knowyourdoctor.onrender.com/${post.postImage}` : null,
-                postVideo: post.postVideo ? `https://knowyourdoctor.onrender.com/${post.postVideo}` : null,
+                postImage: post.postImage ? `${baseURL}/${post.postImage}` : null,
+                postVideo: post.postVideo ? `${baseURL}/${post.postVideo}` : null,
             }
         });
 

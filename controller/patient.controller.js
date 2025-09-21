@@ -6,11 +6,16 @@
     import jwt from "jsonwebtoken";
     dotenv.config();
 
+    const baseURL =
+  process.env.NODE_ENV === 'production'
+    ? 'https://knowyourdoctor.onrender.com'
+    : '${baseURL}';
+
         export const fetchProfile = async (request, response) => {
             try {
                 let { patientId } = request.user;
                 let patient = await User.findById({ _id: patientId });
-                patient.profile.imageName = `https://knowyourdoctor.onrender.com/patientProfile/${patient.profile.imageName}`;
+                patient.profile.imageName = `${baseURL}/patientProfile/${patient.profile.imageName}`;
                 return response.status(201).json({ patient });
 
             } catch (error) {
@@ -173,7 +178,7 @@
                 subject: "Accounte Verification",
                 html: `<h3>Dear ${name} </h3>
                 <p>Welcome to know your patient. Please verify its you if not you dont accept the cookies.</p>
-                <form method = "post" action = "https://knowyourdoctor.onrender.com/verification">
+                <form method = "post" action = "${baseURL}/patient/verification">
                 <input type = "hidden" name = "email" value =" ${email}" />
                 <button type="submit" style="background-color: blue; color:white; width:200px; border: none; border: 1px solid gray; border-radius:10px;">Verify</button>
                 </form>
