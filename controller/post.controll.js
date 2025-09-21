@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 const baseURL =
   process.env.NODE_ENV === 'production'
     ? 'https://knowyourdoctor.onrender.com'
-    : '${baseURL}';
+    : 'http://localhost:3000';
 
 // routes/postRoutes.js
 export const likePost =async (req, res) => {

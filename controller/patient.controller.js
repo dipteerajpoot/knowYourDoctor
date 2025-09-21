@@ -6,11 +6,11 @@
     import jwt from "jsonwebtoken";
     dotenv.config();
 
-    const baseURL =
+const baseURL =
   process.env.NODE_ENV === 'production'
     ? 'https://knowyourdoctor.onrender.com'
-    : '${baseURL}';
-
+    : 'http://localhost:3000';
+    
         export const fetchProfile = async (request, response) => {
             try {
                 let { patientId } = request.user;
