@@ -87,8 +87,8 @@ export const fetchAllPost = async (req, res, next) => {
 
         const updatedPosts = posts.map(post => ({
             ...post._doc, 
-            postImage: post.postImage ? `http://localhost:3000/${post.postImage}` : null,
-            postVideo: post.postVideo ? `http://localhost:3000/${post.postVideo}` : null
+            postImage: post.postImage ? `https://knowyourdoctor.onrender.com/${post.postImage}` : null,
+            postVideo: post.postVideo ? `https://knowyourdoctor.onrender.com/${post.postVideo}` : null
         }));
 
         return res.status(200).json({ message: "Posts fetched successfully", posts: updatedPosts });
@@ -119,7 +119,7 @@ export const getPostforCurruntDoctor = async (req, res, next) => {
                 ? ` posts/${post.postImage}` 
                 : null,
             postVideo: post.postVideo 
-                ? `http://localhost:3000/posts/${post.postVideo}` 
+                ? `https://knowyourdoctor.onrender.com/${post.postVideo}` 
                 : null,
         }));
 
@@ -145,10 +145,10 @@ export const getPostByDoctorId = async (req, res, next) => {
         const updatedPosts = posts.map(post => ({
             ...post._doc,
             postImage: post.postImage 
-                ? `http://localhost:3000/posts/${post.postImage}` 
+                ? `https://knowyourdoctor.onrender.com/${post.postImage}` 
                 : null,
             postVideo: post.postVideo 
-                ? `http://localhost:3000/posts/${post.postVideo}` 
+                ? `https://knowyourdoctor.onrender.com/${post.postVideo}` 
                 : null,
         }));
 
@@ -200,8 +200,8 @@ export const updatePost = async (req, res) => {
             message: "Post updated",
             post: {
                 ...post._doc,
-                postImage: post.postImage ? `http://localhost:3000/${post.postImage}` : null,
-                postVideo: post.postVideo ? `http://localhost:3000/${post.postVideo}` : null,
+                postImage: post.postImage ? `https://knowyourdoctor.onrender.com/${post.postImage}` : null,
+                postVideo: post.postVideo ? `https://knowyourdoctor.onrender.com/${post.postVideo}` : null,
             }
         });
 

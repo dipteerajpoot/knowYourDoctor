@@ -278,11 +278,11 @@ export const viewAppointments = async (req, res) => {
     const updatedAppointments = appointments.map(appt => {
       if (role === "doctor") {
         if (appt.patientId?.profile?.imageName) {
-          appt.patientId.profile.imageURL = `http://localhost:3000/patientProfile/${appt.patientId.profile.imageName}`;
+          appt.patientId.profile.imageURL = `https://knowyourdoctor.onrender.com/patientProfile/${appt.patientId.profile.imageName}`;
         }
       } else {
         if (appt.doctorId?.profile?.imageName) {
-          appt.doctorId.profile.imageURL = `http://localhost:3000/doctorProfile/${appt.doctorId.profile.imageName}`;
+          appt.doctorId.profile.imageURL = `https://knowyourdoctor.onrender.com/doctorProfile/${appt.doctorId.profile.imageName}`;
         }
       }
       return appt;

@@ -10,7 +10,7 @@
             try {
                 let { patientId } = request.user;
                 let patient = await User.findById({ _id: patientId });
-                patient.profile.imageName = `http://localhost:3000/patientProfile/${patient.profile.imageName}`;
+                patient.profile.imageName = `https://knowyourdoctor.onrender.com/patientProfile/${patient.profile.imageName}`;
                 return response.status(201).json({ patient });
 
             } catch (error) {
@@ -173,7 +173,7 @@
                 subject: "Accounte Verification",
                 html: `<h3>Dear ${name} </h3>
                 <p>Welcome to know your patient. Please verify its you if not you dont accept the cookies.</p>
-                <form method = "post" action = "http://localhost:3000/patient/verification">
+                <form method = "post" action = "https://knowyourdoctor.onrender.com/verification">
                 <input type = "hidden" name = "email" value =" ${email}" />
                 <button type="submit" style="background-color: blue; color:white; width:200px; border: none; border: 1px solid gray; border-radius:10px;">Verify</button>
                 </form>
