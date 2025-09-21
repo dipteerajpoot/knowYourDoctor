@@ -37,6 +37,7 @@ const baseURL =
   process.env.NODE_ENV === 'production'
     ? 'https://knowyourdoctor.onrender.com'
     : 'http://localhost:3000';
+
 export const deleteCertificate = async (req, res) => {
     try {
         const { doctorId, role } = req.user;

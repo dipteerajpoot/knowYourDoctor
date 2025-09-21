@@ -5,6 +5,7 @@ const baseURL =
   process.env.NODE_ENV === 'production'
     ? 'https://knowyourdoctor.onrender.com'
     : 'http://localhost:3000';
+
 const getDayFromDate = (dateString) => {
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const date = new Date(dateString);
